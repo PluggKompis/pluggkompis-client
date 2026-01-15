@@ -6,12 +6,11 @@ interface VenueScheduleProps {
   venueId: string;
 }
 
-export const VenueSchedule: React.FC<VenueScheduleProps> = (
-  {
-    /* venueId, */
-  }
-) => {
-  const [selectedDate /* setSelectedDate*/] = useState(new Date());
+export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
+  // Use venueId when we implement the logic
+  console.log("Venue ID:", venueId);
+
+  const [selectedDate /*setSelectedDate*/] = useState(new Date());
 
   return (
     <div className="space-y-6">

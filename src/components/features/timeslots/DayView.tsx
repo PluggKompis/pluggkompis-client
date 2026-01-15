@@ -5,11 +5,9 @@ interface DayViewProps {
   selectedDate: Date;
 }
 
-export const DayView: React.FC<DayViewProps> = (
-  {
-    /* selectedDate, */
-  }
-) => {
+export const DayView: React.FC<DayViewProps> = ({ selectedDate }) => {
+  // Use selectedDate when we implement the logic
+  console.log("Selected date:", selectedDate);
   return (
     <Card>
       <h3 className="mb-4">Måndag 20 januari 2026</h3>

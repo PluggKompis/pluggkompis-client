@@ -4,10 +4,11 @@ import { Search } from "lucide-react";
 import { VenueCard } from "../components/features/venues/VenueCard";
 import { VenueFilters } from "../components/features/venues/VenueFilters";
 import { EmptyState, Spinner, Button } from "../components/common";
+import { Venue } from "@/types/venue.types";
 
 export const VenuesPage: React.FC = () => {
   const [isLoading] = useState(false);
-  const [venues] = useState([]); // Empty for now
+  const [venues] = useState<Venue[]>([]);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -42,7 +43,7 @@ export const VenuesPage: React.FC = () => {
             </div>
           ) : venues.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
-              {venues.map((venue: any) => (
+              {venues.map((venue: Venue) => (
                 <VenueCard key={venue.id} venue={venue} />
               ))}
             </div>
