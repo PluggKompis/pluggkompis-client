@@ -1,6 +1,6 @@
-import { User } from './user.types';
-import { WeekDay } from './venue.types';
-import { BookingStatus, TimeSlotStatus } from './booking.types';
+import { User } from "./user.types";
+import { WeekDay } from "./venue.types";
+import { BookingStatus, TimeSlotStatus } from "./booking.types";
 
 // Generic API response wrapper
 export interface ApiResponse<T> {

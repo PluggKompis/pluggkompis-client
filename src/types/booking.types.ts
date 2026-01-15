@@ -1,5 +1,5 @@
-import { Subject } from './subject.types';
-import { WeekDay } from './venue.types';
+import { Subject } from "./subject.types";
+import { WeekDay } from "./venue.types";
 
 export interface TimeSlot {
   id: number;
@@ -16,9 +16,9 @@ export interface TimeSlot {
 
 // ✅ Matches backend: Open, Full, Cancelled
 export enum TimeSlotStatus {
-  Open = 'Open',
-  Full = 'Full',
-  Cancelled = 'Cancelled',
+  Open = "Open",
+  Full = "Full",
+  Cancelled = "Cancelled",
 }
 
 export interface Booking {
@@ -37,9 +37,9 @@ export interface Booking {
 
 // ✅ Matches backend: Confirmed, Cancelled, Attended
 export enum BookingStatus {
-  Confirmed = 'Confirmed',
-  Cancelled = 'Cancelled',
-  Attended = 'Attended',
+  Confirmed = "Confirmed",
+  Cancelled = "Cancelled",
+  Attended = "Attended",
 }
 
 export interface VolunteerShift {
@@ -56,10 +56,10 @@ export interface VolunteerShift {
 
 // ✅ Matches backend: Pending, Confirmed, Cancelled, Competed (typo in BE)
 export enum VolunteerShiftStatus {
-  Pending = 'Pending',
-  Confirmed = 'Confirmed',
-  Cancelled = 'Cancelled',
-  Competed = 'Competed', // Note: This matches BE typo (should be "Completed")
+  Pending = "Pending",
+  Confirmed = "Confirmed",
+  Cancelled = "Cancelled",
+  Competed = "Competed", // Note: This matches BE typo (should be "Completed")
 }
 
 export interface Attendance {

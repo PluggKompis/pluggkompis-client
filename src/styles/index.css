@@ -1,5 +1,5 @@
 /* Import Google Font FIRST */
-@import url('https://fonts.googleapis.com/css2?family=Afacad:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Afacad:wght@400;600;700&display=swap");
 
 /* Tailwind directives */
 @tailwind base;
@@ -20,8 +20,10 @@
   }
 
   /* Typography */
-  h1, h2, h3 {
-    color: #063B29;
+  h1,
+  h2,
+  h3 {
+    color: #063b29;
     @apply font-bold;
   }
 
@@ -54,7 +56,7 @@
   /* ============================================
      BUTTONS
      ============================================ */
-  
+
   .btn {
     @apply font-semibold rounded-lg transition-all duration-200 
            disabled:opacity-50 disabled:cursor-not-allowed
@@ -80,7 +82,7 @@
   .btn-secondary {
     @apply bg-primary-light text-white focus:ring-primary-light;
   }
-  
+
   .btn-secondary:hover:not(:disabled) {
     background-color: #6b867f;
   }
@@ -90,7 +92,6 @@
            hover:bg-primary hover:text-white focus:ring-primary;
   }
 
-
   /* ============================================
      INPUTS
      ============================================ */
@@ -99,12 +100,12 @@
     @apply w-full px-4 py-3 rounded-lg font-sans text-base
            focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
            transition-all duration-200;
-    background-color: #F7F6F2;
-    border: 1px solid #E4E3E0;
+    background-color: #f7f6f2;
+    border: 1px solid #e4e3e0;
   }
-  
+
   .input-field::placeholder {
-    color: #829D94;
+    color: #829d94;
   }
 
   .input-label {
@@ -113,9 +114,8 @@
 
   .input-error {
     @apply text-sm mt-1;
-    color: #DE7573;
+    color: #de7573;
   }
-
 
   /* ============================================
      CARDS
@@ -123,23 +123,22 @@
 
   .card {
     @apply bg-white rounded-md p-6 transition-shadow duration-200;
-    border: 1px solid #E4E3E0;
+    border: 1px solid #e4e3e0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
-  
+
   .card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   .card-title {
     @apply text-xl font-bold mb-2;
-    color: #063B29;
+    color: #063b29;
   }
 
   .card-body {
     @apply text-base text-black;
   }
-
 
   /* ============================================
      TAGS
@@ -156,24 +155,23 @@
 
   .tag-success {
     @apply text-white;
-    background-color: #24A54F;
+    background-color: #24a54f;
   }
 
   .tag-error {
     @apply text-white;
-    background-color: #DE7573;
+    background-color: #de7573;
   }
 
   .tag-warning {
     @apply text-black;
-    background-color: #E8A593;
+    background-color: #e8a593;
   }
 
   .tag-subject {
     @apply text-white;
-    background-color: #829D94;
+    background-color: #829d94;
   }
-
 
   /* ============================================
      HEADER
@@ -181,7 +179,7 @@
 
   .header {
     @apply text-white shadow-md;
-    background-color: #063B29;
+    background-color: #063b29;
   }
 
   .header-container {
@@ -200,15 +198,14 @@
   .header-link {
     @apply text-white transition-colors duration-200 font-semibold;
   }
-  
+
   .header-link:hover {
-    color: #829D94;
+    color: #829d94;
   }
 
   .header-link-active {
-    color: #829D94;
+    color: #829d94;
   }
-
 
   /* ============================================
      FOOTER
@@ -216,8 +213,8 @@
 
   .footer {
     @apply mt-16;
-    background-color: #F7F6F2;
-    color: #063B29;
+    background-color: #f7f6f2;
+    color: #063b29;
   }
 
   .footer-container {
@@ -227,11 +224,10 @@
   .footer-link {
     @apply transition-colors duration-200;
   }
-  
-  .footer-link:hover {
-    color: #24A54F;
-  }
 
+  .footer-link:hover {
+    color: #24a54f;
+  }
 
   /* ============================================
      VENUE CARDS
@@ -242,21 +238,21 @@
            transition-all duration-200
            hover:-translate-y-1
            cursor-pointer;
-    border: 1px solid #E4E3E0;
+    border: 1px solid #e4e3e0;
   }
-  
+
   .venue-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   .venue-card-title {
     @apply text-xl font-bold mb-2;
-    color: #063B29;
+    color: #063b29;
   }
 
   .venue-card-location {
     @apply text-sm mb-4;
-    color: #829D94;
+    color: #829d94;
   }
 
   .venue-card-subjects {
@@ -265,9 +261,8 @@
 
   .venue-card-days {
     @apply text-sm mt-2;
-    color: #829D94;
+    color: #829d94;
   }
-
 
   /* ============================================
      TIMESLOT CARDS
@@ -276,12 +271,12 @@
   .timeslot-card {
     @apply bg-white rounded-md p-4 
            min-w-[150px] flex flex-col gap-2;
-    border: 1px solid #E4E3E0;
+    border: 1px solid #e4e3e0;
   }
 
   .timeslot-time {
     @apply text-lg font-bold;
-    color: #063B29;
+    color: #063b29;
   }
 
   .timeslot-subjects {
@@ -290,7 +285,7 @@
 
   .timeslot-availability {
     @apply text-sm;
-    color: #829D94;
+    color: #829d94;
   }
 
   .timeslot-status {
@@ -302,17 +297,16 @@
   }
 
   .timeslot-status-badge.open {
-    background-color: #24A54F;
+    background-color: #24a54f;
   }
 
   .timeslot-status-badge.full {
-    background-color: #DE7573;
+    background-color: #de7573;
   }
 
   .timeslot-status-badge.cancelled {
-    background-color: #829D94;
+    background-color: #829d94;
   }
-
 
   /* ============================================
      SCHEDULE / SCHEMA
@@ -325,9 +319,9 @@
   .schedule-nav-btn {
     @apply p-2 rounded-lg transition-colors duration-200;
   }
-  
+
   .schedule-nav-btn:hover {
-    background-color: #F7F6F2;
+    background-color: #f7f6f2;
   }
 
   .schedule-week {
@@ -340,15 +334,14 @@
 
   .schedule-day-header {
     @apply text-center font-bold pb-2;
-    color: #063B29;
-    border-bottom: 2px solid #E4E3E0;
+    color: #063b29;
+    border-bottom: 2px solid #e4e3e0;
   }
 
   .schedule-day-date {
     @apply text-sm;
-    color: #829D94;
+    color: #829d94;
   }
-
 
   /* ============================================
      TABS
@@ -356,24 +349,23 @@
 
   .tabs {
     @apply flex gap-0 mb-6;
-    border-bottom: 2px solid #E4E3E0;
+    border-bottom: 2px solid #e4e3e0;
   }
 
   .tab {
     @apply px-6 py-3 font-semibold transition-all duration-200;
-    color: #829D94;
+    color: #829d94;
   }
-  
+
   .tab:hover {
-    color: #24A54F;
+    color: #24a54f;
   }
 
   .tab-active {
-    color: #24A54F;
-    border-bottom: 2px solid #24A54F;
+    color: #24a54f;
+    border-bottom: 2px solid #24a54f;
     margin-bottom: -2px;
   }
-
 
   /* ============================================
      PAGINATION
@@ -387,24 +379,23 @@
     @apply w-10 h-10 flex items-center justify-center 
            rounded-lg transition-all duration-200;
   }
-  
+
   .pagination-btn:hover {
-    background-color: #F7F6F2;
+    background-color: #f7f6f2;
   }
 
   .pagination-btn-active {
     @apply text-white;
-    background-color: #829D94;
+    background-color: #829d94;
   }
 
   .pagination-arrow {
-    color: #829D94;
+    color: #829d94;
   }
-  
+
   .pagination-arrow:hover {
     @apply text-black;
   }
-
 
   /* ============================================
      EMPTY STATES
@@ -421,13 +412,12 @@
 
   .empty-state-title {
     @apply text-xl font-bold mb-2;
-    color: #063B29;
+    color: #063b29;
   }
 
   .empty-state-description {
-    color: #829D94;
+    color: #829d94;
   }
-
 
   /* ============================================
      FILTERS
@@ -435,7 +425,7 @@
 
   .filter-section {
     @apply bg-white rounded-md p-4 mb-4;
-    border: 1px solid #E4E3E0;
+    border: 1px solid #e4e3e0;
   }
 
   .filter-label {
@@ -445,10 +435,9 @@
   .filter-select {
     @apply w-full px-4 py-3 rounded-lg font-sans text-base
            focus:outline-none focus:ring-2 focus:ring-primary;
-    background-color: #F7F6F2;
-    border: 1px solid #E4E3E0;
+    background-color: #f7f6f2;
+    border: 1px solid #e4e3e0;
   }
-
 
   /* ============================================
      MODALS
@@ -472,14 +461,14 @@
 
   .modal-title {
     @apply text-2xl font-bold;
-    color: #063B29;
+    color: #063b29;
   }
 
   .modal-close {
     @apply transition-colors duration-200;
-    color: #829D94;
+    color: #829d94;
   }
-  
+
   .modal-close:hover {
     @apply text-black;
   }
@@ -494,15 +483,15 @@
   .gap-xs {
     @apply gap-1;
   }
-  
+
   .gap-sm {
     @apply gap-2;
   }
-  
+
   .gap-md {
     @apply gap-4;
   }
-  
+
   .gap-lg {
     @apply gap-6;
   }

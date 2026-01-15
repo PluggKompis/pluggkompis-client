@@ -1,4 +1,4 @@
-import { Subject } from './subject.types';
+import { Subject } from "./subject.types";
 
 export interface Venue {
   id: number;
@@ -30,23 +30,23 @@ export interface OpeningHours {
 
 // ✅ Matches backend WeekDay enum
 export enum WeekDay {
-  Monday = 'Monday',
-  Tuesday = 'Tuesday',
-  Wednesday = 'Wednesday',
-  Thursday = 'Thursday',
-  Friday = 'Friday',
-  Saturday = 'Saturday',
-  Sunday = 'Sunday',
+  Monday = "Monday",
+  Tuesday = "Tuesday",
+  Wednesday = "Wednesday",
+  Thursday = "Thursday",
+  Friday = "Friday",
+  Saturday = "Saturday",
+  Sunday = "Sunday",
 }
 
 export const WeekDayLabels: Record<WeekDay, string> = {
-  [WeekDay.Monday]: 'Måndag',
-  [WeekDay.Tuesday]: 'Tisdag',
-  [WeekDay.Wednesday]: 'Onsdag',
-  [WeekDay.Thursday]: 'Torsdag',
-  [WeekDay.Friday]: 'Fredag',
-  [WeekDay.Saturday]: 'Lördag',
-  [WeekDay.Sunday]: 'Söndag',
+  [WeekDay.Monday]: "Måndag",
+  [WeekDay.Tuesday]: "Tisdag",
+  [WeekDay.Wednesday]: "Onsdag",
+  [WeekDay.Thursday]: "Torsdag",
+  [WeekDay.Friday]: "Fredag",
+  [WeekDay.Saturday]: "Lördag",
+  [WeekDay.Sunday]: "Söndag",
 };
 
 // Helper to convert WeekDay to number (0-6) for calendar display

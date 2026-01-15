@@ -1,11 +1,11 @@
-import { Venue } from './venue.types';
-import { VolunteerSubject } from './subject.types';
+import { Venue } from "./venue.types";
+import { VolunteerSubject } from "./subject.types";
 
 export enum UserRole {
-  Coordinator = 'Coordinator',
-  Volunteer = 'Volunteer',
-  Parent = 'Parent',
-  Student = 'Student',
+  Coordinator = "Coordinator",
+  Volunteer = "Volunteer",
+  Parent = "Parent",
+  Student = "Student",
 }
 
 export interface User {

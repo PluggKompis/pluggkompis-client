@@ -5,9 +5,9 @@ export interface Subject {
 }
 
 export enum ConfidenceLevel {
-  Beginner = 'Beginner',
-  Intermediate = 'Intermediate',
-  Advanced = 'Advanced',
+  Beginner = "Beginner",
+  Intermediate = "Intermediate",
+  Advanced = "Advanced",
 }
 
 export interface VolunteerSubject {

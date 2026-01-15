@@ -1,14 +1,14 @@
 // User types
-export * from './user.types';
+export * from "./user.types";
 
 // Venue types
-export * from './venue.types';
+export * from "./venue.types";
 
 // Booking types
-export * from './booking.types';
+export * from "./booking.types";
 
 // Subject types
-export * from './subject.types';
+export * from "./subject.types";
 
 // API types
-export * from './api.types';
+export * from "./api.types";
