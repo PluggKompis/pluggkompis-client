@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Button, Tag, EmptyState } from "../../common";
+import { Card, Button, Tag } from "../../common"; // add empty state later
 import { WeekView } from "../timeslots/WeekView";
 import { DayView } from "../timeslots/DayView";
 import { MiniCalendar } from "../timeslots/MiniCalendar";

@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpen, MapPin, Clock } from "lucide-react";
+import { BookOpen, Clock } from "lucide-react"; // add MapPin icon later
 import { Card, Button, Tag, EmptyState } from "../../common";
 
 export const StudentBookingsList: React.FC = () => {

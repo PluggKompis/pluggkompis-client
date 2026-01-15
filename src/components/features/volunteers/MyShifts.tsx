@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, MapPin, Clock, Users } from "lucide-react";
+import { Calendar, Clock, Users } from "lucide-react"; // add MapPin icon if needed
 import { Card, Tag, Button, EmptyState } from "../../common";
 
 export const MyShifts: React.FC = () => {

@@ -5,7 +5,11 @@ interface DayViewProps {
   selectedDate: Date;
 }
 
-export const DayView: React.FC<DayViewProps> = ({ selectedDate }) => {
+export const DayView: React.FC<DayViewProps> = (
+  {
+    /* selectedDate, */
+  }
+) => {
   return (
     <Card>
       <h3 className="mb-4">Måndag 20 januari 2026</h3>

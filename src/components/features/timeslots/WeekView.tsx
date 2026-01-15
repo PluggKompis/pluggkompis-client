@@ -5,7 +5,11 @@ interface WeekViewProps {
   selectedDate: Date;
 }
 
-export const WeekView: React.FC<WeekViewProps> = ({ selectedDate }) => {
+export const WeekView: React.FC<WeekViewProps> = (
+  {
+    /* selectedDate, */
+  }
+) => {
   const days = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
   const dates = [20, 21, 22, 23, 24, 25, 26]; // Mock dates
 

@@ -21,8 +21,8 @@ jobs:
         id: size
         run: |
           # Get the number of lines changed
-          ADDITIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= insertion)')
-          DELETIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | grep -oP '\d+(?= deletion)')
+          ADDITIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | awk '{print $1}')
+          DELETIONS=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | awk '{print $4}')
 
           # Default to 0 if not found
           ADDITIONS=${ADDITIONS:-0}
@@ -51,28 +51,35 @@ jobs:
         with:
           script: |
             const size = '${{ steps.size.outputs.size }}';
-            const currentLabels = context.payload.pull_request.labels.map(l => l.name);
+            const newLabel = `size: ${size}`;
             const sizeLabels = ['size: XS', 'size: S', 'size: M', 'size: L', 'size: XL'];
+            const currentLabels = context.payload.pull_request.labels.map(l => l.name);
 
             // Remove old size labels
-            for (const label of currentLabels) {
-              if (sizeLabels.includes(label)) {
-                await github.rest.issues.removeLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.pull_request.number,
-                  name: label
-                });
+            for (const label of sizeLabels) {
+              if (currentLabels.includes(label) && label !== newLabel) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    name: label
+                  });
+                } catch (error) {
+                  console.log(`Could not remove label ${label}: ${error.message}`);
+                }
               }
             }
 
-            // Add new size label
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              labels: [`size: ${size}`]
-            });
+            // Add new size label if not already present
+            if (!currentLabels.includes(newLabel)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [newLabel]
+              });
+            }
 
       - name: Comment build status
         uses: actions/github-script@v7
@@ -92,9 +99,9 @@ jobs:
             - ✅ Build success
             `;
 
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
+              issue_number: context.issue.number,
               body: comment
             });
