@@ -21,25 +21,7 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  });
-
-  useEffect(() => {
-    if (shouldRedirect && user) {
-      console.log("🚀 Login - Redirecting with user role:", user.role);
-      const dashboardRoute = getDashboardRoute(user.role);
-      console.log("🎯 Dashboard route:", dashboardRoute);
-      navigate(dashboardRoute);
-      setShouldRedirect(false);
-    }
-  }, [user, shouldRedirect, navigate]);
+  const [loginComplete, setLoginComplete] = useState(false);
 
   const getDashboardRoute = (userRole: UserRole): string => {
     const roleRoutes: Record<UserRole, string> = {
@@ -51,15 +33,34 @@ export const LoginPage: React.FC = () => {
     return roleRoutes[userRole] || "/";
   };
 
+  // Only navigate when user is available AND login was completed
+  useEffect(() => {
+    if (loginComplete && user) {
+      console.log("🚀 Login - Redirecting with user role:", user.role);
+      const dashboardRoute = getDashboardRoute(user.role);
+      console.log("🎯 Dashboard route:", dashboardRoute);
+      navigate(dashboardRoute);
+      // No setState here!
+    }
+  }, [loginComplete, user, navigate]); // Remove getDashboardRoute from deps
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
       setApiError("");
 
       await login(data.email, data.password);
+      console.log("✅ Login complete, user should be updated");
 
-      console.log("✅ Login complete, setting redirect flag");
-      setShouldRedirect(true);
+      setLoginComplete(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Inloggningen misslyckades";
       setApiError(errorMessage);

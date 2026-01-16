@@ -33,28 +33,7 @@ export const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [apiError, setApiError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: String(UserRole.Student),
-    },
-  });
-
-  useEffect(() => {
-    if (shouldRedirect && user) {
-      console.log("🚀 Redirecting with user role:", user.role);
-      const dashboardRoute = getDashboardRoute(user.role);
-      console.log("🎯 Dashboard route:", dashboardRoute);
-      navigate(dashboardRoute);
-      setShouldRedirect(false);
-    }
-  }, [user, shouldRedirect, navigate]);
+  const [registerComplete, setRegisterComplete] = useState(false);
 
   const getDashboardRoute = (userRole: UserRole): string => {
     const roleRoutes: Record<UserRole, string> = {
@@ -66,6 +45,28 @@ export const RegisterPage: React.FC = () => {
     console.log("📍 Role:", userRole, "Route:", roleRoutes[userRole]);
     return roleRoutes[userRole] || "/";
   };
+
+  // Only navigate when user is available AND registration was completed
+  useEffect(() => {
+    if (registerComplete && user) {
+      console.log("🚀 Redirecting with user role:", user.role);
+      const dashboardRoute = getDashboardRoute(user.role);
+      console.log("🎯 Dashboard route:", dashboardRoute);
+      navigate(dashboardRoute);
+      // No setState here!
+    }
+  }, [registerComplete, user, navigate]); // Remove getDashboardRoute from deps
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: String(UserRole.Student),
+    },
+  });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -83,9 +84,9 @@ export const RegisterPage: React.FC = () => {
         role: roleNumber,
       });
 
-      // Use user from context after registration completes
-      console.log("✅ Registration complete, setting redirect flag");
-      setShouldRedirect(true);
+      console.log("✅ Registration complete, user should be updated");
+
+      setRegisterComplete(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Registreringen misslyckades";
       setApiError(errorMessage);
