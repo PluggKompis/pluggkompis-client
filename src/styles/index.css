@@ -1,0 +1,521 @@
+/* Import Google Font FIRST */
+@import url("https://fonts.googleapis.com/css2?family=Afacad:wght@400;600;700&display=swap");
+
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   BASE LAYER - Variables & Typography
+   ============================================ */
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply font-sans bg-white text-black;
+  }
+
+  /* Typography */
+  h1,
+  h2,
+  h3 {
+    color: #063b29;
+    @apply font-bold;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+}
+
+/* ============================================
+   COMPONENTS LAYER
+   ============================================ */
+
+@layer components {
+  /* ============================================
+     BUTTONS
+     ============================================ */
+
+  .btn {
+    @apply font-semibold rounded-lg transition-all duration-200 
+           disabled:opacity-50 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-md {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-600 focus:ring-primary;
+  }
+
+  .btn-secondary {
+    @apply bg-primary-light text-white focus:ring-primary-light;
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #6b867f;
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-primary border-2 border-primary 
+           hover:bg-primary hover:text-white focus:ring-primary;
+  }
+
+  /* ============================================
+     INPUTS
+     ============================================ */
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-lg font-sans text-base
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+           transition-all duration-200;
+    background-color: #f7f6f2;
+    border: 1px solid #e4e3e0;
+  }
+
+  .input-field::placeholder {
+    color: #829d94;
+  }
+
+  .input-label {
+    @apply block text-sm font-semibold text-black mb-2;
+  }
+
+  .input-error {
+    @apply text-sm mt-1;
+    color: #de7573;
+  }
+
+  /* ============================================
+     CARDS
+     ============================================ */
+
+  .card {
+    @apply bg-white rounded-md p-6 transition-shadow duration-200;
+    border: 1px solid #e4e3e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-title {
+    @apply text-xl font-bold mb-2;
+    color: #063b29;
+  }
+
+  .card-body {
+    @apply text-base text-black;
+  }
+
+  /* ============================================
+     TAGS
+     ============================================ */
+
+  .tag {
+    @apply inline-flex items-center gap-1 px-3 py-1.5 
+           rounded-lg text-sm font-semibold;
+  }
+
+  .tag-default {
+    @apply bg-gray-200 text-black;
+  }
+
+  .tag-success {
+    @apply text-white;
+    background-color: #24a54f;
+  }
+
+  .tag-error {
+    @apply text-white;
+    background-color: #de7573;
+  }
+
+  .tag-warning {
+    @apply text-black;
+    background-color: #e8a593;
+  }
+
+  .tag-subject {
+    @apply text-white;
+    background-color: #829d94;
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+
+  .header {
+    @apply text-white shadow-md;
+    background-color: #063b29;
+  }
+
+  .header-container {
+    @apply container mx-auto px-4 py-4 
+           flex items-center justify-between;
+  }
+
+  .header-logo {
+    @apply text-2xl font-bold;
+  }
+
+  .header-nav {
+    @apply flex items-center gap-6;
+  }
+
+  .header-link {
+    @apply text-white transition-colors duration-200 font-semibold;
+  }
+
+  .header-link:hover {
+    color: #829d94;
+  }
+
+  .header-link-active {
+    color: #829d94;
+  }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+
+  .footer {
+    @apply mt-16;
+    background-color: #f7f6f2;
+    color: #063b29;
+  }
+
+  .footer-container {
+    @apply container mx-auto px-4 py-8;
+  }
+
+  .footer-link {
+    @apply transition-colors duration-200;
+  }
+
+  .footer-link:hover {
+    color: #24a54f;
+  }
+
+  /* ============================================
+     VENUE CARDS
+     ============================================ */
+
+  .venue-card {
+    @apply bg-white rounded-md p-6 
+           transition-all duration-200
+           hover:-translate-y-1
+           cursor-pointer;
+    border: 1px solid #e4e3e0;
+  }
+
+  .venue-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .venue-card-title {
+    @apply text-xl font-bold mb-2;
+    color: #063b29;
+  }
+
+  .venue-card-location {
+    @apply text-sm mb-4;
+    color: #829d94;
+  }
+
+  .venue-card-subjects {
+    @apply flex flex-wrap gap-2 mt-4;
+  }
+
+  .venue-card-days {
+    @apply text-sm mt-2;
+    color: #829d94;
+  }
+
+  /* ============================================
+     TIMESLOT CARDS
+     ============================================ */
+
+  .timeslot-card {
+    @apply bg-white rounded-md p-4 
+           min-w-[150px] flex flex-col gap-2;
+    border: 1px solid #e4e3e0;
+  }
+
+  .timeslot-time {
+    @apply text-lg font-bold;
+    color: #063b29;
+  }
+
+  .timeslot-subjects {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .timeslot-availability {
+    @apply text-sm;
+    color: #829d94;
+  }
+
+  .timeslot-status {
+    @apply flex items-center gap-2 text-sm font-semibold;
+  }
+
+  .timeslot-status-badge {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .timeslot-status-badge.open {
+    background-color: #24a54f;
+  }
+
+  .timeslot-status-badge.full {
+    background-color: #de7573;
+  }
+
+  .timeslot-status-badge.cancelled {
+    background-color: #829d94;
+  }
+
+  /* ============================================
+     SCHEDULE / SCHEMA
+     ============================================ */
+
+  .schedule-header {
+    @apply flex items-center justify-between mb-6;
+  }
+
+  .schedule-nav-btn {
+    @apply p-2 rounded-lg transition-colors duration-200;
+  }
+
+  .schedule-nav-btn:hover {
+    background-color: #f7f6f2;
+  }
+
+  .schedule-week {
+    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4;
+  }
+
+  .schedule-day {
+    @apply flex flex-col gap-3;
+  }
+
+  .schedule-day-header {
+    @apply text-center font-bold pb-2;
+    color: #063b29;
+    border-bottom: 2px solid #e4e3e0;
+  }
+
+  .schedule-day-date {
+    @apply text-sm;
+    color: #829d94;
+  }
+
+  /* ============================================
+     TABS
+     ============================================ */
+
+  .tabs {
+    @apply flex gap-0 mb-6;
+    border-bottom: 2px solid #e4e3e0;
+  }
+
+  .tab {
+    @apply px-6 py-3 font-semibold transition-all duration-200;
+    color: #829d94;
+  }
+
+  .tab:hover {
+    color: #24a54f;
+  }
+
+  .tab-active {
+    color: #24a54f;
+    border-bottom: 2px solid #24a54f;
+    margin-bottom: -2px;
+  }
+
+  /* ============================================
+     PAGINATION
+     ============================================ */
+
+  .pagination {
+    @apply flex items-center justify-center gap-2 mt-8;
+  }
+
+  .pagination-btn {
+    @apply w-10 h-10 flex items-center justify-center 
+           rounded-lg transition-all duration-200;
+  }
+
+  .pagination-btn:hover {
+    background-color: #f7f6f2;
+  }
+
+  .pagination-btn-active {
+    @apply text-white;
+    background-color: #829d94;
+  }
+
+  .pagination-arrow {
+    color: #829d94;
+  }
+
+  .pagination-arrow:hover {
+    @apply text-black;
+  }
+
+  /* ============================================
+     EMPTY STATES
+     ============================================ */
+
+  .empty-state {
+    @apply flex flex-col items-center justify-center 
+           py-12 px-4 text-center;
+  }
+
+  .empty-state-icon {
+    @apply text-6xl mb-4;
+  }
+
+  .empty-state-title {
+    @apply text-xl font-bold mb-2;
+    color: #063b29;
+  }
+
+  .empty-state-description {
+    color: #829d94;
+  }
+
+  /* ============================================
+     FILTERS
+     ============================================ */
+
+  .filter-section {
+    @apply bg-white rounded-md p-4 mb-4;
+    border: 1px solid #e4e3e0;
+  }
+
+  .filter-label {
+    @apply block text-sm font-semibold text-black mb-2;
+  }
+
+  .filter-select {
+    @apply w-full px-4 py-3 rounded-lg font-sans text-base
+           focus:outline-none focus:ring-2 focus:ring-primary;
+    background-color: #f7f6f2;
+    border: 1px solid #e4e3e0;
+  }
+
+  /* ============================================
+     MODALS
+     ============================================ */
+
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 
+           flex items-center justify-center z-50
+           p-4;
+  }
+
+  .modal {
+    @apply bg-white rounded-lg shadow-2xl 
+           max-w-md w-full max-h-[90vh] overflow-y-auto
+           p-6;
+  }
+
+  .modal-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .modal-title {
+    @apply text-2xl font-bold;
+    color: #063b29;
+  }
+
+  .modal-close {
+    @apply transition-colors duration-200;
+    color: #829d94;
+  }
+
+  .modal-close:hover {
+    @apply text-black;
+  }
+}
+
+/* ============================================
+   UTILITIES LAYER
+   ============================================ */
+
+@layer utilities {
+  /* Custom spacing */
+  .gap-xs {
+    @apply gap-1;
+  }
+
+  .gap-sm {
+    @apply gap-2;
+  }
+
+  .gap-md {
+    @apply gap-4;
+  }
+
+  .gap-lg {
+    @apply gap-6;
+  }
+
+  /* Truncate text */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* ============================================
+   THIRD-PARTY STYLES
+   ============================================ */
+
+@import "leaflet/dist/leaflet.css";
