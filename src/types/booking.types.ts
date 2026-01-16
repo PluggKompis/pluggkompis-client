@@ -1,12 +1,12 @@
 import { Subject } from "./subject.types";
-import { WeekDay } from "./venue.types";
+import { WeekDay, TimeSlotStatus } from "./venue.types";
 
 export interface TimeSlot {
-  id: number;
-  venueId: number;
+  id: string;
+  venueId: string;
   dayOfWeek: WeekDay;
-  startTime: string; // "16:00:00"
-  endTime: string; // "18:00:00"
+  startTime: string;
+  endTime: string;
   maxStudents: number;
   subjects: Subject[];
   status: TimeSlotStatus;
@@ -14,20 +14,13 @@ export interface TimeSlot {
   updatedAt: string;
 }
 
-// ✅ Matches backend: Open, Full, Cancelled
-export enum TimeSlotStatus {
-  Open = "Open",
-  Full = "Full",
-  Cancelled = "Cancelled",
-}
-
 export interface Booking {
-  id: number;
-  timeSlotId: number;
+  id: string;
+  timeSlotId: string;
   timeSlot?: TimeSlot;
-  studentId?: number; // If booked by student directly
-  childId?: number; // If booked by parent for child
-  bookingDate: string; // "2026-01-20"
+  studentId?: string;
+  childId?: string;
+  bookingDate: string;
   status: BookingStatus;
   selectedSubjects: Subject[];
   notes?: string;
@@ -35,7 +28,6 @@ export interface Booking {
   updatedAt: string;
 }
 
-// ✅ Matches backend: Confirmed, Cancelled, Attended
 export enum BookingStatus {
   Confirmed = "Confirmed",
   Cancelled = "Cancelled",
@@ -43,29 +35,28 @@ export enum BookingStatus {
 }
 
 export interface VolunteerShift {
-  id: number;
-  volunteerId: number;
-  timeSlotId: number;
+  id: string;
+  volunteerId: string;
+  timeSlotId: string;
   timeSlot?: TimeSlot;
-  shiftDate: string; // "2026-01-20"
+  shiftDate: string;
   status: VolunteerShiftStatus;
   hoursWorked?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-// ✅ Matches backend: Pending, Confirmed, Cancelled, Competed (typo in BE)
 export enum VolunteerShiftStatus {
   Pending = "Pending",
   Confirmed = "Confirmed",
   Cancelled = "Cancelled",
-  Competed = "Competed", // Note: This matches BE typo (should be "Completed")
+  Competed = "Competed", // Matches BE typo
 }
 
 export interface Attendance {
-  id: number;
-  bookingId?: number;
-  volunteerShiftId?: number;
+  id: string;
+  bookingId?: string;
+  volunteerShiftId?: string;
   attendanceDate: string;
   isPresent: boolean;
   notes?: string;

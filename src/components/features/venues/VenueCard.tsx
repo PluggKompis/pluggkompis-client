@@ -1,52 +1,66 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { MapPin, Clock } from "lucide-react";
-import { Tag } from "../../common";
-import { Venue, WeekDayLabels } from "@/types/venue.types";
+import { Link } from "react-router-dom";
+import { MapPin, Clock, Users } from "lucide-react";
+import { Card, Tag } from "../../common";
+import { Venue } from "@/types";
 
 interface VenueCardProps {
   venue: Venue;
 }
 
 export const VenueCard: React.FC<VenueCardProps> = ({ venue }) => {
-  const navigate = useNavigate();
-
-  // Get unique opening days from openingHours
-  const openDays = venue.openingHours
-    .map((oh) => WeekDayLabels[oh.dayOfWeek])
-    .slice(0, 3) // Show first 3 days to keep it compact
-    .join(", ");
-
-  // Get subject names
-  const subjectNames = venue.subjects.map((subject) => subject.name);
-
   return (
-    <div className="venue-card" onClick={() => navigate(`/venues/${venue.id}`)}>
-      <h3 className="venue-card-title">{venue.name}</h3>
+    <Link to={`/venues/${venue.id}`}>
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+        <div className="flex flex-col h-full">
+          {/* Venue Header */}
+          <div className="mb-4">
+            <h3 className="mb-2">{venue.name}</h3>
+            <div className="flex items-start gap-2 text-sm text-neutral-secondary">
+              <MapPin size={16} className="mt-0.5 flex-shrink-0" />
+              <span>
+                {venue.address}, {venue.city}
+              </span>
+            </div>
+          </div>
 
-      <div className="flex items-center gap-2 text-sm text-neutral-secondary mb-3">
-        <MapPin size={16} />
-        <span>
-          {venue.address}, {venue.postalCode} {venue.city}
-        </span>
-      </div>
+          {/* Description */}
+          <p className="text-sm text-neutral-secondary mb-4 line-clamp-2">{venue.description}</p>
 
-      <div className="flex items-center gap-2 my-3">
-        <span className="text-sm font-semibold">{venue.maxStudentsPerSession} lediga platser</span>
-        <span className="text-neutral-secondary text-sm">•</span>
-        <div className="flex items-center gap-1 text-sm text-neutral-secondary">
-          <Clock size={14} />
-          <span>{openDays || "Kontakta"}</span>
+          {/* Available Days */}
+          {venue.availableDays && venue.availableDays.length > 0 && (
+            <div className="flex items-center gap-2 mb-4 text-sm">
+              <Clock size={16} className="text-neutral-secondary" />
+              <span className="text-neutral-secondary">{venue.availableDays.join(", ")}</span>
+            </div>
+          )}
+
+          {/* Subjects */}
+          {venue.availableSubjects && venue.availableSubjects.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {venue.availableSubjects.slice(0, 3).map((subjectName, index) => (
+                <Tag key={index} variant="subject">
+                  {subjectName}
+                </Tag>
+              ))}
+              {venue.availableSubjects.length > 3 && (
+                <Tag variant="default">+{venue.availableSubjects.length - 3}</Tag>
+              )}
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="mt-auto pt-4 border-t border-neutral-stroke flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-neutral-secondary">
+              <Users size={16} />
+              <span>Koordinator: {venue.coordinatorName}</span>
+            </div>
+            {venue.isActive && (
+              <span className="text-xs bg-success/10 text-success px-2 py-1 rounded">Öppet</span>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div className="venue-card-subjects">
-        {subjectNames.map((subjectName) => (
-          <Tag key={subjectName} variant="subject">
-            {subjectName}
-          </Tag>
-        ))}
-      </div>
-    </div>
+      </Card>
+    </Link>
   );
 };

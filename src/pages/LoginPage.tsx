@@ -1,16 +1,67 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Button, Input } from "../components/common";
-import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/hooks";
+import { UserRole } from "@/types";
+
+const loginSchema = z.object({
+  email: z.string().email("Ogiltig e-postadress"),
+  password: z.string().min(1, "Lösenord krävs"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Login:", { email, password });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      setIsLoading(true);
+      setApiError("");
+
+      await login(data.email, data.password);
+
+      // Redirect to role-specific dashboard
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      switch (user.role) {
+        case UserRole.Coordinator:
+          navigate("/coordinator");
+          break;
+        case UserRole.Parent:
+          navigate("/parent");
+          break;
+        case UserRole.Student:
+          navigate("/student");
+          break;
+        case UserRole.Volunteer:
+          navigate("/volunteer");
+          break;
+        default:
+          navigate("/");
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Inloggningen misslyckades";
+      setApiError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -21,24 +72,31 @@ export const LoginPage: React.FC = () => {
           <p className="text-neutral-secondary">Välkommen tillbaka till PluggKompis!</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="din@email.se"
-            required
-          />
+        {apiError && (
+          <div className="mb-6 p-4 bg-error/10 border border-error rounded-lg flex items-start gap-3">
+            <AlertCircle size={20} className="text-error flex-shrink-0 mt-0.5" />
+            <p className="text-error text-sm">{apiError}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <Input
+              label="Email"
+              type="email"
+              placeholder="din@email.se"
+              error={errors.email?.message}
+              {...register("email")}
+            />
+          </div>
 
           <div className="relative">
             <Input
               label="Lösenord"
               type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="********"
-              required
+              error={errors.password?.message}
+              {...register("password")}
             />
             <button
               type="button"
@@ -49,8 +107,15 @@ export const LoginPage: React.FC = () => {
             </button>
           </div>
 
-          <Button type="submit" variant="primary" size="lg" className="w-full">
-            Logga in
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            className="w-full"
+            isLoading={isLoading}
+            disabled={isLoading}
+          >
+            {isLoading ? "Loggar in..." : "Logga in"}
           </Button>
         </form>
 

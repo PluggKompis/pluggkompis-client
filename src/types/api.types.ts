@@ -1,6 +1,6 @@
-import { User } from "./user.types";
-import { WeekDay } from "./venue.types";
-import { BookingStatus, TimeSlotStatus } from "./booking.types";
+import { UserRole } from "./user.types";
+import { TimeSlotStatus, WeekDay } from "./venue.types";
+import { BookingStatus } from "./booking.types";
 
 // Generic API response wrapper
 export interface ApiResponse<T> {
@@ -25,7 +25,15 @@ export interface ApiError {
   statusCode: number;
 }
 
-// Login/Register requests
+// Backend OperationResult wrapper
+export interface OperationResult<T> {
+  isSuccess: boolean;
+  data?: T;
+  errors?: string[];
+  statusCode?: number;
+}
+
+// Auth DTOs matching backend exactly
 export interface LoginRequest {
   email: string;
   password: string;
@@ -36,14 +44,26 @@ export interface RegisterRequest {
   lastName: string;
   email: string;
   password: string;
-  role: string;
+  role: UserRole;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+// Backend returns user with string ID and role
+export interface AuthUserDto {
+  id: string; // Backend returns Guid as string
+  email: string;
+  role: string; // Backend returns role as string
+  firstName: string;
+  lastName: string;
 }
 
 export interface AuthResponse {
   token: string;
-  refreshToken?: string;
-  user: User;
-  expiresAt: string;
+  refreshToken: string;
+  user: AuthUserDto;
 }
 
 // Filter/Query params

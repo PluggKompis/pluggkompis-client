@@ -1,15 +1,30 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, Button } from "../../common";
+import { Subject, WeekDay, WeekDayLabels } from "@/types";
 
-export const VenueFilters: React.FC = () => {
-  const [city, setCity] = useState("");
-  const [subject, setSubject] = useState("");
-  const [day, setDay] = useState("");
+interface VenueFiltersProps {
+  subjects: Subject[];
+  selectedCity: string;
+  onCityChange: (city: string) => void;
+  selectedSubjectId: string;
+  onSubjectChange: (subjectId: string) => void;
+  selectedDay: WeekDay | "";
+  onDayChange: (day: WeekDay | "") => void;
+}
 
+export const VenueFilters: React.FC<VenueFiltersProps> = ({
+  subjects,
+  selectedCity,
+  onCityChange,
+  selectedSubjectId,
+  onSubjectChange,
+  selectedDay,
+  onDayChange,
+}) => {
   const handleReset = () => {
-    setCity("");
-    setSubject("");
-    setDay("");
+    onCityChange("");
+    onSubjectChange("");
+    onDayChange("");
   };
 
   return (
@@ -23,13 +38,13 @@ export const VenueFilters: React.FC = () => {
             <label className="filter-label">Stad</label>
             <select
               className="filter-select"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
+              value={selectedCity}
+              onChange={(e) => onCityChange(e.target.value)}
             >
               <option value="">Alla städer</option>
-              <option value="göteborg">Göteborg</option>
-              <option value="stockholm">Stockholm</option>
-              <option value="malmö">Malmö</option>
+              <option value="Göteborg">Göteborg</option>
+              <option value="Stockholm">Stockholm</option>
+              <option value="Malmö">Malmö</option>
             </select>
           </div>
 
@@ -38,29 +53,32 @@ export const VenueFilters: React.FC = () => {
             <label className="filter-label">Ämne</label>
             <select
               className="filter-select"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              value={selectedSubjectId}
+              onChange={(e) => onSubjectChange(e.target.value)}
             >
               <option value="">Alla ämnen</option>
-              <option value="matematik">Matematik</option>
-              <option value="svenska">Svenska</option>
-              <option value="engelska">Engelska</option>
-              <option value="fysik">Fysik</option>
-              <option value="kemi">Kemi</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.icon} {subject.name}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Day Filter */}
           <div>
             <label className="filter-label">Dag</label>
-            <select className="filter-select" value={day} onChange={(e) => setDay(e.target.value)}>
+            <select
+              className="filter-select"
+              value={selectedDay}
+              onChange={(e) => onDayChange(e.target.value as WeekDay | "")}
+            >
               <option value="">Alla dagar</option>
-              <option value="måndag">Måndag</option>
-              <option value="tisdag">Tisdag</option>
-              <option value="onsdag">Onsdag</option>
-              <option value="torsdag">Torsdag</option>
-              <option value="fredag">Fredag</option>
-              <option value="lördag">Lördag</option>
+              {Object.entries(WeekDayLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
             </select>
           </div>
 
