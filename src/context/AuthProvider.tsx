@@ -7,6 +7,26 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+// Helper function to convert c# enum role to TypeScript enum string
+const convertToUserRole = (role: number | string): UserRole => {
+  // If it's already a number, return it directly
+  if (typeof role === "number") {
+    return role as UserRole;
+  }
+
+  // If it's a string, convert role NAME to role number
+  const roleNameMap: Record<string, UserRole> = {
+    Coordinator: UserRole.Coordinator, // 0
+    Volunteer: UserRole.Volunteer, // 1
+    Parent: UserRole.Parent, // 2
+    Student: UserRole.Student, // 3
+  };
+
+  const converted = roleNameMap[role];
+  console.log("🔄 Converting role string:", role, "→", converted);
+  return converted !== undefined ? converted : UserRole.Student; // Default to Student
+};
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,7 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const user: User = {
         id: userData.id,
         email: userData.email,
-        role: userData.role as UserRole,
+        role: convertToUserRole(userData.role), // convert back the enum to string role
         firstName: userData.firstName,
         lastName: userData.lastName,
         createdAt: new Date().toISOString(),
@@ -76,12 +96,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const user: User = {
         id: userData.id,
         email: userData.email,
-        role: userData.role as UserRole,
+        role: convertToUserRole(userData.role), // convert back the enum to string role
         firstName: userData.firstName,
         lastName: userData.lastName,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      console.log("🔍 Backend userData.role:", userData.role);
+      console.log("🔍 Converted role:", user.role);
+      console.log("🔍 User object to store:", user);
 
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);

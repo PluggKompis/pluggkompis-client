@@ -1,10 +1,10 @@
 import { VolunteerSubject, Venue, VolunteerApplication, VolunteerApplicationStatus } from "@/types";
 
 export enum UserRole {
-  Coordinator = "Coordinator",
-  Volunteer = "Volunteer",
-  Parent = "Parent",
-  Student = "Student",
+  Coordinator = 0,
+  Volunteer = 1,
+  Parent = 2,
+  Student = 3,
 }
 
 // Base User with string ID (matches backend Guid)

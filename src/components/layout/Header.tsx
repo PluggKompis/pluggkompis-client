@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "../common";
 import { useAuth } from "@/hooks";
+import { UserRole } from "@/types";
 
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,12 +17,22 @@ export const Header: React.FC = () => {
     navigate("/");
   };
 
+  // Convert numeric role to display name
+  const getRoleName = (role: UserRole): string => {
+    const roleNames: Record<UserRole, string> = {
+      [UserRole.Coordinator]: "Koordinator",
+      [UserRole.Volunteer]: "Volontär",
+      [UserRole.Parent]: "Förälder",
+      [UserRole.Student]: "Elev",
+    };
+    return roleNames[role] || "Okänd roll";
+  };
+
   return (
     <header className="bg-primary-dark text-white sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {" "}
-          {/* ✅ Changed from h-18 to h-20 */}
           {/* Logo */}
           <Link to="/" className="text-2xl font-bold hover:text-primary-light transition-colors">
             PluggKompis
@@ -67,7 +78,7 @@ export const Header: React.FC = () => {
                           {user.firstName} {user.lastName}
                         </p>
                         <p className="text-sm text-neutral-secondary">{user.email}</p>
-                        <p className="text-xs text-primary mt-1">{user.role}</p>
+                        <p className="text-xs text-primary mt-1">{getRoleName(user.role)}</p>
                       </div>
 
                       <Link
@@ -79,7 +90,7 @@ export const Header: React.FC = () => {
                       </Link>
 
                       {/* Role-specific dashboard links */}
-                      {user.role === "Coordinator" && (
+                      {user.role === UserRole.Coordinator && (
                         <Link
                           to="/coordinator"
                           className="block px-4 py-2 text-black hover:bg-neutral-bg transition-colors"
@@ -89,7 +100,7 @@ export const Header: React.FC = () => {
                         </Link>
                       )}
 
-                      {user.role === "Parent" && (
+                      {user.role === UserRole.Parent && (
                         <Link
                           to="/parent"
                           className="block px-4 py-2 text-black hover:bg-neutral-bg transition-colors"
@@ -99,7 +110,7 @@ export const Header: React.FC = () => {
                         </Link>
                       )}
 
-                      {user.role === "Student" && (
+                      {user.role === UserRole.Student && (
                         <Link
                           to="/student"
                           className="block px-4 py-2 text-black hover:bg-neutral-bg transition-colors"
@@ -109,7 +120,7 @@ export const Header: React.FC = () => {
                         </Link>
                       )}
 
-                      {user.role === "Volunteer" && (
+                      {user.role === UserRole.Volunteer && (
                         <Link
                           to="/volunteer"
                           className="block px-4 py-2 text-black hover:bg-neutral-bg transition-colors"
@@ -199,7 +210,7 @@ export const Header: React.FC = () => {
                   </Link>
 
                   {/* Mobile role-specific links */}
-                  {user.role === "Coordinator" && (
+                  {user.role === UserRole.Coordinator && (
                     <Link
                       to="/coordinator"
                       className="hover:text-primary-light transition-colors"
@@ -209,7 +220,7 @@ export const Header: React.FC = () => {
                     </Link>
                   )}
 
-                  {user.role === "Parent" && (
+                  {user.role === UserRole.Parent && (
                     <Link
                       to="/parent"
                       className="hover:text-primary-light transition-colors"
@@ -219,7 +230,7 @@ export const Header: React.FC = () => {
                     </Link>
                   )}
 
-                  {user.role === "Student" && (
+                  {user.role === UserRole.Student && (
                     <Link
                       to="/student"
                       className="hover:text-primary-light transition-colors"
@@ -229,7 +240,7 @@ export const Header: React.FC = () => {
                     </Link>
                   )}
 
-                  {user.role === "Volunteer" && (
+                  {user.role === UserRole.Volunteer && (
                     <Link
                       to="/volunteer"
                       className="hover:text-primary-light transition-colors"

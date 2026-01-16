@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks";
 import { Card } from "@/components/common";
 import { User, Mail, Calendar, ArrowLeft } from "lucide-react";
+import { UserRole } from "@/types";
 
 export const ProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -10,18 +11,27 @@ export const ProfilePage: React.FC = () => {
 
   if (!user) return null;
 
+  // Convert numeric role to role name
+  const getRoleName = (role: UserRole): string => {
+    const roleNames: Record<UserRole, string> = {
+      [UserRole.Coordinator]: "Koordinator",
+      [UserRole.Volunteer]: "Volontär",
+      [UserRole.Parent]: "Förälder",
+      [UserRole.Student]: "Elev",
+    };
+    return roleNames[role] || "Okänd roll";
+  };
+
   // Determine dashboard route based on user role
   const getDashboardRoute = () => {
-    const role = user.role?.toLowerCase();
-
-    const roleRoutes: Record<string, string> = {
-      parent: "/parent",
-      volunteer: "/volunteer",
-      coordinator: "/coordinator",
-      student: "/student",
+    const roleRoutes: Record<UserRole, string> = {
+      [UserRole.Parent]: "/parent",
+      [UserRole.Volunteer]: "/volunteer",
+      [UserRole.Coordinator]: "/coordinator",
+      [UserRole.Student]: "/student",
     };
 
-    return roleRoutes[role] || "/";
+    return roleRoutes[user.role] || "/";
   };
 
   return (
@@ -34,7 +44,7 @@ export const ProfilePage: React.FC = () => {
           className="text-primary hover:underline flex items-center gap-1"
         >
           <ArrowLeft size={14} />
-          Tillbaka till dashboard
+          Tillbaka till instrumentpanel
         </button>
         <span className="text-neutral-secondary">/</span>
         <span className="text-neutral-secondary">Min Profil</span>
@@ -50,7 +60,9 @@ export const ProfilePage: React.FC = () => {
               <h2 className="mb-1">
                 {user.firstName} {user.lastName}
               </h2>
-              <p className="text-sm text-primary font-semibold mb-4">{user.role}</p>
+              <p className="text-sm text-primary font-semibold mb-4">
+                {getRoleName(user.role)} {/* Display role name */}
+              </p>
 
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-neutral-secondary">

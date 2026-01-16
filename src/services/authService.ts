@@ -1,10 +1,13 @@
 import { api } from "./api";
-import { LoginRequest, RegisterRequest, AuthResponse, OperationResult } from "@/types";
+import { RegisterRequest, LoginRequest, AuthResponse, OperationResult } from "@/types";
 
 export const authService = {
   // Register new user
   register: async (data: RegisterRequest): Promise<OperationResult<AuthResponse>> => {
-    const response = await api.post<OperationResult<AuthResponse>>("/auth/register", data);
+    const response = await api.post<OperationResult<AuthResponse>>(
+      "/auth/register",
+      data // role will be sent as 0, 1, 2, or 3
+    );
     return response.data;
   },
 

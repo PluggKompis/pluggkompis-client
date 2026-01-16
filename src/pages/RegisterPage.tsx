@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,10 +15,12 @@ const registerSchema = z
     email: z.string().email("Ogiltig e-postadress"),
     password: z.string().min(8, "Lösenord måste vara minst 8 tecken"),
     confirmPassword: z.string(),
-    role: z.nativeEnum(UserRole),
+    role: z.string().refine((val) => ["0", "1", "2", "3"].includes(val), {
+      message: "Välj en giltig roll",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Lösenorden matchar inte",
+    message: "Lösenorden matkar inte",
     path: ["confirmPassword"],
   });
 
@@ -26,11 +28,12 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [apiError, setApiError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const {
     register,
@@ -39,47 +42,75 @@ export const RegisterPage: React.FC = () => {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      role: UserRole.Student, // Default role
+      role: String(UserRole.Student),
     },
   });
+
+  useEffect(() => {
+    if (shouldRedirect && user) {
+      console.log("🚀 Redirecting with user role:", user.role);
+      const dashboardRoute = getDashboardRoute(user.role);
+      console.log("🎯 Dashboard route:", dashboardRoute);
+      navigate(dashboardRoute);
+      setShouldRedirect(false);
+    }
+  }, [user, shouldRedirect, navigate]);
+
+  const getDashboardRoute = (userRole: UserRole): string => {
+    const roleRoutes: Record<UserRole, string> = {
+      [UserRole.Coordinator]: "/coordinator",
+      [UserRole.Volunteer]: "/volunteer",
+      [UserRole.Parent]: "/parent",
+      [UserRole.Student]: "/student",
+    };
+    console.log("📍 Role:", userRole, "Route:", roleRoutes[userRole]);
+    return roleRoutes[userRole] || "/";
+  };
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
       setApiError("");
 
+      const roleNumber = parseInt(data.role, 10) as UserRole;
+      console.log("📤 Sending role number:", roleNumber, "Type:", typeof roleNumber);
+
       await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        role: data.role,
+        role: roleNumber,
       });
 
-      // Redirect to role-specific dashboard
-      switch (data.role) {
-        case UserRole.Coordinator:
-          navigate("/coordinator");
-          break;
-        case UserRole.Parent:
-          navigate("/parent");
-          break;
-        case UserRole.Student:
-          navigate("/student");
-          break;
-        case UserRole.Volunteer:
-          navigate("/volunteer");
-          break;
-        default:
-          navigate("/");
-      }
+      // Use user from context after registration completes
+      console.log("✅ Registration complete, setting redirect flag");
+      setShouldRedirect(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Registreringen misslyckades";
       setApiError(errorMessage);
-    } finally {
       setIsLoading(false);
     }
   };
+
+  const roles = [
+    { value: String(UserRole.Student), label: "Elev", description: "Jag vill få läxhjälp" },
+    {
+      value: String(UserRole.Parent),
+      label: "Förälder",
+      description: "Jag vill boka hjälp för mitt barn",
+    },
+    {
+      value: String(UserRole.Volunteer),
+      label: "Volontär",
+      description: "Jag vill hjälpa andra med läxor",
+    },
+    {
+      value: String(UserRole.Coordinator),
+      label: "Koordinator",
+      description: "Jag vill hantera en plats",
+    },
+  ];
 
   return (
     <div className="flex items-center justify-center px-4 py-12">
@@ -172,59 +203,23 @@ export const RegisterPage: React.FC = () => {
           <div>
             <label className="block text-sm font-semibold mb-2">Jag är en...</label>
             <div className="space-y-3">
-              <label className="flex items-center p-4 border-2 border-neutral-stroke rounded-lg cursor-pointer hover:border-primary transition-colors">
-                <input
-                  type="radio"
-                  value={UserRole.Student}
-                  {...register("role")}
-                  className="w-4 h-4 text-primary"
-                />
-                <div className="ml-3">
-                  <p className="font-semibold">Elev</p>
-                  <p className="text-sm text-neutral-secondary">Jag vill få läxhjälp</p>
-                </div>
-              </label>
-
-              <label className="flex items-center p-4 border-2 border-neutral-stroke rounded-lg cursor-pointer hover:border-primary transition-colors">
-                <input
-                  type="radio"
-                  value={UserRole.Parent}
-                  {...register("role")}
-                  className="w-4 h-4 text-primary"
-                />
-                <div className="ml-3">
-                  <p className="font-semibold">Förälder</p>
-                  <p className="text-sm text-neutral-secondary">
-                    Jag vill boka hjälp för mitt barn
-                  </p>
-                </div>
-              </label>
-
-              <label className="flex items-center p-4 border-2 border-neutral-stroke rounded-lg cursor-pointer hover:border-primary transition-colors">
-                <input
-                  type="radio"
-                  value={UserRole.Volunteer}
-                  {...register("role")}
-                  className="w-4 h-4 text-primary"
-                />
-                <div className="ml-3">
-                  <p className="font-semibold">Volontär</p>
-                  <p className="text-sm text-neutral-secondary">Jag vill hjälpa andra med läxor</p>
-                </div>
-              </label>
-
-              <label className="flex items-center p-4 border-2 border-neutral-stroke rounded-lg cursor-pointer hover:border-primary transition-colors">
-                <input
-                  type="radio"
-                  value={UserRole.Coordinator}
-                  {...register("role")}
-                  className="w-4 h-4 text-primary"
-                />
-                <div className="ml-3">
-                  <p className="font-semibold">Koordinator</p>
-                  <p className="text-sm text-neutral-secondary">Jag vill hantera en plats</p>
-                </div>
-              </label>
+              {roles.map((roleOption) => (
+                <label
+                  key={roleOption.value}
+                  className="flex items-center p-4 border-2 border-neutral-stroke rounded-lg cursor-pointer hover:border-primary transition-colors"
+                >
+                  <input
+                    type="radio"
+                    value={roleOption.value} // String value "0", "1", "2", "3"
+                    {...register("role")}
+                    className="w-4 h-4 text-primary"
+                  />
+                  <div className="ml-3">
+                    <p className="font-semibold">{roleOption.label}</p>
+                    <p className="text-sm text-neutral-secondary">{roleOption.description}</p>
+                  </div>
+                </label>
+              ))}
             </div>
             {errors.role && <p className="text-error text-sm mt-2">{errors.role.message}</p>}
           </div>
