@@ -1,34 +1,91 @@
-import { Subject } from "./subject.types";
+import { VolunteerApplication } from "@/types";
 
+// Basic venue info for list views (matches VenueDto from backend)
 export interface Venue {
-  id: number;
+  id: string;
   name: string;
   address: string;
   city: string;
   postalCode: string;
-  latitude?: number;
-  longitude?: number;
-  contactEmail?: string;
-  contactPhone?: string;
-  description?: string;
-  maxStudentsPerSession: number;
-  recommendedVolunteers: number;
+  description: string;
+  contactEmail: string;
+  contactPhone: string;
   isActive: boolean;
-  subjects: Subject[];
-  openingHours: OpeningHours[];
-  createdAt: string;
-  updatedAt: string;
+
+  // Coordinator info
+  coordinatorId: string;
+  coordinatorName: string;
+
+  // Aggregated data for display
+  availableSubjects: string[]; // List of subject names
+  availableDays: string[]; // List of days (e.g., ["Monday", "Tuesday"])
+
+  createdAt?: string;
+  updatedAt?: string;
 }
 
+// Detailed venue info (matches VenueDetailDto from backend)
+export interface VenueDetail {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  description: string;
+  contactEmail: string;
+  contactPhone: string;
+  isActive: boolean;
+
+  // Coordinator info
+  coordinatorId: string;
+  coordinatorName: string;
+
+  // Related data
+  timeSlots: TimeSlotSummary[]; // From backend
+  volunteers: VolunteerSummary[]; // Active volunteers at this venue
+
+  // Optional: For coordinators viewing their own venue
+  pendingApplications?: VolunteerApplication[];
+
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Volunteer summary for venue display
+export interface VolunteerSummary {
+  volunteerId: string;
+  volunteerName: string;
+  subjects: string[]; // List of subject names
+}
+
+// TimeSlot summary (lightweight version for venue display)
+export interface TimeSlotSummary {
+  id: string;
+  dayOfWeek: WeekDay;
+  startTime: string; // "16:00:00"
+  endTime: string; // "18:00:00"
+  maxStudents: number;
+  availableSpots?: number; // Calculated by backend
+  status: TimeSlotStatus;
+  subjects: string[]; // Subject names
+}
+
+export enum TimeSlotStatus {
+  Open = "Open",
+  Full = "Full",
+  Cancelled = "Cancelled",
+}
+
+// Opening hours
 export interface OpeningHours {
-  id: number;
-  venueId: number;
+  id: string;
+  venueId: string;
   dayOfWeek: WeekDay;
   openTime: string; // "16:00:00"
   closeTime: string; // "20:00:00"
 }
 
-// ✅ Matches backend WeekDay enum
+// WeekDay enum
 export enum WeekDay {
   Monday = "Monday",
   Tuesday = "Tuesday",
@@ -49,7 +106,6 @@ export const WeekDayLabels: Record<WeekDay, string> = {
   [WeekDay.Sunday]: "Söndag",
 };
 
-// Helper to convert WeekDay to number (0-6) for calendar display
 export const WeekDayToNumber: Record<WeekDay, number> = {
   [WeekDay.Monday]: 0,
   [WeekDay.Tuesday]: 1,
@@ -59,3 +115,35 @@ export const WeekDayToNumber: Record<WeekDay, number> = {
   [WeekDay.Saturday]: 5,
   [WeekDay.Sunday]: 6,
 };
+
+// Requests for creating/updating venues
+export interface CreateVenueRequest {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  description: string;
+  contactEmail: string;
+  contactPhone: string;
+}
+
+export interface UpdateVenueRequest {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  description: string;
+  contactEmail: string;
+  contactPhone: string;
+  isActive: boolean;
+}
+
+// Filter params for venue search (matches VenueFilterParams from backend)
+export interface VenueFilterParams {
+  city?: string;
+  subjectId?: string;
+  dayOfWeek?: WeekDay;
+  isActive?: boolean;
+  pageNumber?: number;
+  pageSize?: number;
+}

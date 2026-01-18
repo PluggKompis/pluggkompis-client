@@ -1,11 +1,37 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; // add useEffect here
 import { Mail, Phone } from "lucide-react";
 import { Card, Button, Tag, Input } from "../../common";
 import { VolunteerApplicationCard } from "./VolunteerApplicationCard";
+import { VolunteerApplication, VolunteerApplicationStatus } from "@/types"; // add VolunteerWithVenue here
 
 export const VolunteersManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"active" | "pending" | "all">("active");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Mock data for now (replace with API call later)
+  const mockApplications: VolunteerApplication[] = [
+    {
+      id: "1",
+      volunteerId: "v1",
+      venueId: "venue1",
+      status: VolunteerApplicationStatus.Pending,
+      appliedAt: new Date().toISOString(),
+      volunteerName: "Maria Karlsson",
+      volunteerEmail: "maria.karlsson@email.se",
+      message:
+        "Jag är lärarstudent i sista året och skulle gärna vilja hjälpa till med läxhjälp i naturvetenskap.",
+    },
+  ];
+
+  const handleApprove = async (applicationId: string) => {
+    // TODO: Call API to approve
+    console.log("Approve application:", applicationId);
+  };
+
+  const handleDecline = async (applicationId: string) => {
+    // TODO: Call API to decline
+    console.log("Decline application:", applicationId);
+  };
 
   return (
     <div className="space-y-6">
@@ -38,7 +64,7 @@ export const VolunteersManager: React.FC = () => {
                 activeTab === "pending" ? "bg-primary text-white" : "bg-neutral-bg"
               }`}
             >
-              Väntande (2)
+              Väntande ({mockApplications.length})
             </button>
             <button
               onClick={() => setActiveTab("all")}
@@ -56,11 +82,24 @@ export const VolunteersManager: React.FC = () => {
       <div className="space-y-4">
         {activeTab === "pending" ? (
           <>
-            <VolunteerApplicationCard />
-            <VolunteerApplicationCard />
+            {mockApplications.length > 0 ? (
+              mockApplications.map((app) => (
+                <VolunteerApplicationCard
+                  key={app.id}
+                  application={app}
+                  onApprove={handleApprove}
+                  onDecline={handleDecline}
+                />
+              ))
+            ) : (
+              <Card>
+                <p className="text-center text-neutral-secondary py-4">Inga väntande ansökningar</p>
+              </Card>
+            )}
           </>
         ) : (
           <>
+            {/* Active/All Volunteers */}
             <Card>
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4 flex-1">
@@ -88,47 +127,6 @@ export const VolunteersManager: React.FC = () => {
                     </div>
                     <p className="text-sm text-neutral-secondary">
                       Genomförda pass: 24 • Totala timmar: 48h
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    Se profil
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Schemalägg
-                  </Button>
-                </div>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 bg-primary-light rounded-full flex items-center justify-center text-white font-bold">
-                    EJ
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3>Erik Johansson</h3>
-                      <Tag variant="success">Aktiv</Tag>
-                    </div>
-                    <div className="flex flex-col gap-1 mb-2">
-                      <div className="flex items-center gap-2 text-sm text-neutral-secondary">
-                        <Mail size={14} />
-                        <span>erik.johansson@email.se</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-neutral-secondary">
-                        <Phone size={14} />
-                        <span>070-987 65 43</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mb-2">
-                      <Tag variant="subject">Svenska</Tag>
-                      <Tag variant="subject">Engelska</Tag>
-                    </div>
-                    <p className="text-sm text-neutral-secondary">
-                      Genomförda pass: 18 • Totala timmar: 36h
                     </p>
                   </div>
                 </div>

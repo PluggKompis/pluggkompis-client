@@ -1,19 +1,41 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { User } from "lucide-react";
 import { Overview } from "@/components/features/coordinator/Overview";
-import { TimeSlotsManager } from "../components/features/coordinator/TimeSlotsManager";
-import { VolunteersManager } from "../components/features/coordinator/VolunteersManager";
+import { TimeSlotsManager } from "@/components/features/coordinator/TimeSlotsManager";
+import { VolunteersManager } from "@/components/features/coordinator/VolunteersManager";
 import { AttendanceTracker } from "@/components/features/coordinator/AttendanceTracker";
-import { VenueInfo } from "../components/features/coordinator/VenueInfo";
-import { UserProfile } from "@/components/features/shared/UserProfile";
+import { VenueInfo } from "@/components/features/coordinator/VenueInfo";
+import { Button } from "@/components/common";
+import { useAuth } from "@/hooks";
 
 export const CoordinatorDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "timeslots" | "volunteers" | "attendance" | "venue" | "user"
+    "overview" | "timeslots" | "volunteers" | "attendance" | "venue"
   >("overview");
+  const { user } = useAuth();
 
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="mb-8">Koordinatorpanel</h1>
+
+      {/* Profile Quick Access */}
+      <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <User size={20} className="text-primary" />
+          <div>
+            <p className="font-semibold text-sm">
+              {user?.firstName} {user?.lastName}
+            </p>
+            <p className="text-xs text-neutral-secondary">{user?.email}</p>
+          </div>
+        </div>
+        <Link to="/profile">
+          <Button variant="outline" size="sm">
+            Redigera profil
+          </Button>
+        </Link>
+      </div>
 
       {/* Tabs */}
       <div className="tabs">
@@ -47,12 +69,6 @@ export const CoordinatorDashboard: React.FC = () => {
         >
           Min Plats
         </button>
-        <button
-          onClick={() => setActiveTab("user")}
-          className={`tab ${activeTab === "user" ? "tab-active" : ""}`}
-        >
-          Mina Uppgifter
-        </button>
       </div>
 
       {/* Tab Content */}
@@ -62,7 +78,6 @@ export const CoordinatorDashboard: React.FC = () => {
         {activeTab === "volunteers" && <VolunteersManager />}
         {activeTab === "attendance" && <AttendanceTracker />}
         {activeTab === "venue" && <VenueInfo />}
-        {activeTab === "user" && <UserProfile />}
       </div>
     </div>
   );
