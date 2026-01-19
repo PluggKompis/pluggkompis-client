@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Clock, Users } from "lucide-react";
-import { Card, Tag } from "../../common";
+import { Card, Tag, SubjectTag } from "../../common";
 import { Venue } from "@/types";
 
 interface VenueCardProps {
@@ -38,10 +38,8 @@ export const VenueCard: React.FC<VenueCardProps> = ({ venue }) => {
           {/* Subjects */}
           {venue.availableSubjects && venue.availableSubjects.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
-              {venue.availableSubjects.slice(0, 3).map((subjectName, index) => (
-                <Tag key={index} variant="subject">
-                  {subjectName}
-                </Tag>
+              {venue.availableSubjects.slice(0, 3).map((subject) => (
+                <SubjectTag key={subject.id} name={subject.name} icon={subject.icon} />
               ))}
               {venue.availableSubjects.length > 3 && (
                 <Tag variant="default">+{venue.availableSubjects.length - 3}</Tag>

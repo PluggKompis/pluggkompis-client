@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Input, Select, Spinner } from "../../common";
+import { Modal, Button, Input, Select, Spinner, SubjectTag } from "../../common";
 import { TimeSlotSummary, Parent } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { bookingService } from "@/services";
@@ -88,9 +88,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
 
           <div className="flex flex-wrap gap-2 mt-3">
             {timeSlot.subjects.map((subject, idx) => (
-              <span key={idx} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                {subject}
-              </span>
+              <SubjectTag
+                key={idx}
+                name={typeof subject === "string" ? subject : subject.name}
+                icon={typeof subject === "object" ? subject.icon : undefined}
+              />
             ))}
           </div>
         </div>

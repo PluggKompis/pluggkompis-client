@@ -1,7 +1,12 @@
 export interface Subject {
-  id: string; // Changed from number to string
+  id: string;
   name: string;
   icon: string;
+}
+
+export interface SubjectInfo {
+  name: string;
+  icon?: string;
 }
 
 export enum ConfidenceLevel {
@@ -11,7 +16,7 @@ export enum ConfidenceLevel {
 }
 
 export interface VolunteerSubject {
-  subjectId: string; // Changed from number to string
+  subjectId: string;
   subject: Subject;
   confidenceLevel: ConfidenceLevel;
 }

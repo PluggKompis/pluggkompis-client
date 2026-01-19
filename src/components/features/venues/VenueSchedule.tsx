@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks";
-import { Card, Button, Tag, Spinner } from "../../common";
+import { Card, Button, Tag, Spinner, SubjectTag } from "../../common";
 import { WeekView } from "../timeslots/WeekView";
 import { BookingModal } from "../bookings/BookingModal";
 import { Parent, TimeSlotSummary, UserRole } from "@/types";
@@ -212,29 +212,34 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     <div className="space-y-6">
       {/* Week Calendar View */}
       <Card>
-        <div className="flex items-center justify-between mb-4">
-          <h3>Välj ett pass</h3>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToPreviousWeek}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft size={16} />
-              Föregående vecka
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToNextWeek}
-              className="flex items-center gap-2"
-            >
-              Nästa vecka
-              <ChevronRight size={16} />
-            </Button>
-          </div>
+        {/* Heading first */}
+        <h3 className="mb-4">Välj ett pass</h3>
+
+        {/* Buttons below heading */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousWeek}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft size={16} />
+            <span className="hidden sm:inline">Föregående vecka</span>
+            <span className="sm:hidden">Föreg.</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextWeek}
+            className="flex items-center gap-2"
+          >
+            <span className="hidden sm:inline">Nästa vecka</span>
+            <span className="sm:hidden">Nästa</span>
+            <ChevronRight size={16} />
+          </Button>
         </div>
+
         <WeekView
           timeSlots={timeSlots}
           weekDates={weekDates}
@@ -253,25 +258,17 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
           </Card>
         ) : (
           availableSlots.map((slot) => {
-            // --- SMART DATE CALCULATION START ---
             let displayDate = new Date();
 
             if (slot.specificDate) {
-              // Case A: Specific Date. Use this exact date.
-              // This fixes the DB mismatch (ignoring if DB says 'Wednesday' for a Tuesday date)
               displayDate = new Date(slot.specificDate);
             } else {
-              // Case B: Recurring. Find the date in the current week that matches the slot's DayOfWeek
-              // 1. Get the standard JS index (e.g. "Tuesday" -> 2)
               const targetDayIndex = dayToIndex[slot.dayOfWeek];
-
-              // 2. Find that index in our weekDates array
               const foundDate = weekDates.find((d) => d.getDay() === targetDayIndex);
               if (foundDate) {
                 displayDate = foundDate;
               }
             }
-            // --- SMART DATE CALCULATION END ---
 
             return (
               <Card
@@ -281,14 +278,69 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                   selectedSlotId === slot.id ? "ring-2 ring-primary" : ""
                 }`}
               >
-                <div className="flex items-start justify-between gap-4">
+                {/* ✅ MOBILE LAYOUT: Stack vertically */}
+                <div className="flex flex-col gap-4 lg:hidden">
+                  {/* Date */}
+                  <h4 className="font-semibold text-lg">
+                    {capitalize(displayDate.toLocaleDateString("sv-SE", { weekday: "long" }))}{" "}
+                    {formatDate(displayDate)}
+                  </h4>
+
+                  {/* Availability Badge */}
+                  <Tag variant={getAvailabilityVariant(slot.availableSpots || 0, slot.maxStudents)}>
+                    {slot.availableSpots} {slot.availableSpots === 1 ? "plats" : "platser"} kvar
+                  </Tag>
+
+                  {/* Time */}
+                  <p className="text-sm text-neutral-secondary">
+                    {slot.startTime} - {slot.endTime}
+                  </p>
+
+                  {/* Subjects */}
+                  <div className="flex flex-wrap gap-2">
+                    {slot.subjects.map((subject, idx) => (
+                      <SubjectTag
+                        key={idx}
+                        name={typeof subject === "string" ? subject : subject.name}
+                        icon={typeof subject === "object" ? subject.icon : undefined}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Booking Button - Full Width */}
+                  {isAuthenticated ? (
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="primary"
+                        size="md"
+                        onClick={() => handleBookSlot(slot)}
+                        className="w-full"
+                      >
+                        Boka pass
+                      </Button>
+                      {/* Helper text if parent has no children */}
+                      {user?.role === UserRole.Parent && !parentHasChildren() && (
+                        <p className="text-xs text-error text-center">Lägg till barn först</p>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={handleLoginRequired}
+                      className="w-full"
+                    >
+                      Logga in för att boka
+                    </Button>
+                  )}
+                </div>
+
+                {/* ✅ DESKTOP LAYOUT: Side by side */}
+                <div className="hidden lg:flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <h4 className="font-medium">
-                        {/* Display Day Name + Date derived from the ACTUAL date object */}
-                        {capitalize(
-                          displayDate.toLocaleDateString("sv-SE", { weekday: "long" })
-                        )}{" "}
+                        {capitalize(displayDate.toLocaleDateString("sv-SE", { weekday: "long" }))}{" "}
                         {formatDate(displayDate)}
                       </h4>
                       <Tag
@@ -304,14 +356,16 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
 
                     <div className="flex flex-wrap gap-2">
                       {slot.subjects.map((subject, idx) => (
-                        <Tag key={idx} variant="subject">
-                          {subject}
-                        </Tag>
+                        <SubjectTag
+                          key={idx}
+                          name={typeof subject === "string" ? subject : subject.name}
+                          icon={typeof subject === "object" ? subject.icon : undefined}
+                        />
                       ))}
                     </div>
                   </div>
 
-                  {/* Conditional button with helper text and based on authentication */}
+                  {/* Booking Button - Right Side */}
                   <div className="flex flex-col items-end gap-1">
                     {isAuthenticated ? (
                       <>
@@ -324,7 +378,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                           Boka pass
                         </Button>
 
-                        {/* Show helper text if parent has no children */}
                         {user?.role === UserRole.Parent && !parentHasChildren() && (
                           <p className="text-xs text-error">Lägg till barn först</p>
                         )}

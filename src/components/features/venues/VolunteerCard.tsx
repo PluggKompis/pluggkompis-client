@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Tag } from "../../common";
+import { Card, SubjectTag } from "../../common";
 import { User, Briefcase } from "lucide-react";
 
 interface VolunteerCardProps {
@@ -12,16 +12,18 @@ interface VolunteerCardProps {
       | string[]
       | Array<{
           name: string;
+          icon?: string;
           confidenceLevel?: "Beginner" | "Intermediate" | "Expert";
         }>;
   };
 }
 
 export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer }) => {
-  // Helper to normalize subjects to consistent format
-  const normalizeSubject = (subject: string | { name: string; confidenceLevel?: string }) => {
+  const normalizeSubject = (
+    subject: string | { name: string; icon?: string; confidenceLevel?: string }
+  ) => {
     if (typeof subject === "string") {
-      return { name: subject, confidenceLevel: undefined };
+      return { name: subject, icon: undefined, confidenceLevel: undefined };
     }
     return subject;
   };
@@ -95,7 +97,7 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer }) => {
               const normalized = normalizeSubject(subject);
               return (
                 <div key={idx} className="flex flex-col gap-1">
-                  <Tag variant="subject">{normalized.name}</Tag>
+                  <SubjectTag name={normalized.name} icon={normalized.icon} />
                   {getConfidenceBadge(normalized.confidenceLevel)}
                 </div>
               );
