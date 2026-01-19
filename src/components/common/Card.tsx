@@ -1,11 +1,8 @@
 import React from "react";
 
-interface CardProps {
-  children: React.ReactNode;
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   subtitle?: string;
-  className?: string;
-  onClick?: () => void;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -14,11 +11,16 @@ export const Card: React.FC<CardProps> = ({
   subtitle,
   className = "",
   onClick,
+  ...rest
 }) => {
   const isClickable = !!onClick;
 
   return (
-    <div className={`card ${isClickable ? "cursor-pointer" : ""} ${className}`} onClick={onClick}>
+    <div
+      {...rest}
+      className={`card ${isClickable ? "cursor-pointer" : ""} ${className}`}
+      onClick={onClick}
+    >
       {title && (
         <div className="mb-4">
           <h3 className="card-title">{title}</h3>

@@ -7,12 +7,15 @@ import {
   UpdateVenueRequest,
   OperationResult,
   TimeSlotSummary,
+  PaginatedResponse,
 } from "@/types";
 
 export const venueService = {
   // Get all venues with optional filtering
-  getVenues: async (filters?: VenueFilterParams): Promise<OperationResult<Venue[]>> => {
-    const response = await api.get<OperationResult<Venue[]>>("/venues", {
+  getVenues: async (
+    filters?: VenueFilterParams
+  ): Promise<OperationResult<PaginatedResponse<Venue>>> => {
+    const response = await api.get<OperationResult<PaginatedResponse<Venue>>>("/venues", {
       params: filters,
     });
     return response.data;

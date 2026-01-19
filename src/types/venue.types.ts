@@ -58,6 +58,23 @@ export interface VolunteerSummary {
   subjects: string[]; // List of subject names
 }
 
+// TimeSlot details
+export interface TimeSlot {
+  id: string;
+  venueId: string;
+
+  dayOfWeek: WeekDay;
+  startTime: string;
+  endTime: string;
+
+  maxStudents: number;
+  status: TimeSlotStatus;
+
+  subjects: string[]; // or Subject[] if expanded
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // TimeSlot summary (lightweight version for venue display)
 export interface TimeSlotSummary {
   id: string;
@@ -68,6 +85,8 @@ export interface TimeSlotSummary {
   availableSpots?: number; // Calculated by backend
   status: TimeSlotStatus;
   subjects: string[]; // Subject names
+  isRecurring: boolean;
+  specificDate?: string;
 }
 
 export enum TimeSlotStatus {
@@ -141,8 +160,8 @@ export interface UpdateVenueRequest {
 // Filter params for venue search (matches VenueFilterParams from backend)
 export interface VenueFilterParams {
   city?: string;
-  subjectId?: string;
-  dayOfWeek?: WeekDay;
+  subjectIds?: string[];
+  daysOfWeek?: WeekDay[];
   isActive?: boolean;
   pageNumber?: number;
   pageSize?: number;

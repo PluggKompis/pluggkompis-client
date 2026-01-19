@@ -4,7 +4,8 @@ import { MapPin, Clock, AlertCircle } from "lucide-react";
 import { VenueDetail } from "../components/features/venues/VenueDetail";
 import { VenueSchedule } from "../components/features/venues/VenueSchedule";
 import { VenueMap } from "../components/features/venues/VenueMap";
-import { Spinner, Button } from "../components/common";
+import { VolunteerCard } from "../components/features/venues/VolunteerCard";
+import { Spinner } from "../components/common";
 import { VenueDetail as VenueDetailType } from "@/types";
 import { venueService } from "@/services";
 import heroImage from "../assets/hero.jpg";
@@ -90,10 +91,6 @@ export const VenueDetailPage: React.FC = () => {
             </div>
 
             <p className="text-gray-200 mb-6 text-lg">{venue.description}</p>
-
-            <Button variant="primary" size="lg">
-              Boka pass
-            </Button>
           </div>
         </div>
       </div>
@@ -127,29 +124,22 @@ export const VenueDetailPage: React.FC = () => {
       {/* Tab Content */}
       <div className="container mx-auto px-4 py-8">
         {activeTab === "schedule" && <VenueSchedule venueId={id!} />}
+
+        {/* Volunteer cards with proper component */}
         {activeTab === "volunteers" && (
           <div>
             <h2 className="mb-6">Våra Volontärer</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {venue.volunteers.map((volunteer) => (
-                <div
-                  key={volunteer.volunteerId}
-                  className="p-4 border border-neutral-stroke rounded-lg"
-                >
-                  <h3 className="mb-2">{volunteer.volunteerName}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {volunteer.subjects.map((subject, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
-                      >
-                        {subject}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {venue.volunteers.length === 0 ? (
+              <div className="text-center py-12 text-neutral-secondary">
+                Inga volontärer registrerade ännu
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {venue.volunteers.map((volunteer) => (
+                  <VolunteerCard key={volunteer.volunteerId} volunteer={volunteer} />
+                ))}
+              </div>
+            )}
           </div>
         )}
         {activeTab === "about" && (

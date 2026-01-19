@@ -11,7 +11,7 @@ export interface ApiResponse<T> {
 
 // Paginated response
 export interface PaginatedResponse<T> {
-  data: T[];
+  items: T[];
   totalCount: number;
   page: number;
   pageSize: number;
