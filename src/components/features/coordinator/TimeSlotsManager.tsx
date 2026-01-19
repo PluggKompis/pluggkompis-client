@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, Button, Tag } from "../../common"; // add empty state later
-import { WeekView } from "../timeslots/WeekView";
-import { DayView } from "../timeslots/DayView";
+// import { WeekView } from "../timeslots/WeekView";
+// import { DayView } from "../timeslots/DayView";
 import { MiniCalendar } from "../timeslots/MiniCalendar";
 
 export const TimeSlotsManager: React.FC = () => {
@@ -51,11 +51,14 @@ export const TimeSlotsManager: React.FC = () => {
 
         {/* Schedule View */}
         <div className="lg:col-span-3">
-          {view === "week" ? (
-            <WeekView selectedDate={selectedDate} />
-          ) : (
-            <DayView selectedDate={selectedDate} />
-          )}
+          <Card>
+            <div className="text-center py-12">
+              <p className="text-neutral-secondary mb-2">Schemavy kommer snart</p>
+              <p className="text-sm text-neutral-secondary">
+                Vald datum: {selectedDate.toLocaleDateString("sv-SE")}
+              </p>
+            </div>
+          </Card>
         </div>
       </div>
 
