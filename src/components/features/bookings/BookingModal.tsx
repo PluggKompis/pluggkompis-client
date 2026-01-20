@@ -115,7 +115,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
             <option value="">-- Välj barn --</option>
             {parent.children.map((child) => (
               <option key={child.id} value={child.id}>
-                {child.firstName} {child.lastName}
+                {child.firstName} ({child.schoolGrade})
               </option>
             ))}
           </Select>

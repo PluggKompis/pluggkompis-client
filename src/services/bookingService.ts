@@ -4,9 +4,7 @@ import { OperationResult, Booking, CreateBookingRequest, BookingStatus } from "@
 class BookingService {
   private baseUrl = "/bookings";
 
-  /**
-   * Get all bookings for the current user
-   */
+  // Get all bookings for the current user
   async getMyBookings(): Promise<OperationResult<Booking[]>> {
     const response = await api.get<OperationResult<Booking[]>>(this.baseUrl);
     return response.data;
@@ -47,16 +45,12 @@ class BookingService {
     return response.data;
   }
 
-  /**
-   * Filter bookings by status
-   */
+  // Filter bookings by status
   filterByStatus(bookings: Booking[], status: BookingStatus): Booking[] {
     return bookings.filter((b) => b.status === status);
   }
 
-  /**
-   * Check if booking can be cancelled (2-hour window before session start)
-   */
+  // Check if booking can be cancelled (2-hour window before session start)
   canCancelBooking(booking: Booking, timeSlot: { startTime: string }): boolean {
     const bookingDate = new Date(booking.bookingDate);
     const [hours, minutes] = timeSlot.startTime.split(":").map(Number);
