@@ -13,5 +13,5 @@ export * from "./subject.types";
 // API types
 export * from "./api.types";
 
-// Application types (NEW)
+// Application types
 export * from "./application.types";

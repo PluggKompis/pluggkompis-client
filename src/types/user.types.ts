@@ -27,10 +27,23 @@ export interface Parent extends User {
 export interface Child {
   id: string;
   firstName: string;
-  lastName: string;
   birthYear: number;
-  gradeLevel?: number;
+  schoolGrade: string;
   parentId: string;
+}
+
+// For adding a child
+export interface AddChildRequest {
+  firstName: string;
+  birthYear: number;
+  schoolGrade: string;
+}
+
+// For updating a child
+export interface UpdateChildRequest {
+  firstName: string;
+  birthYear: number;
+  schoolGrade: string;
 }
 
 export interface Student extends User {
