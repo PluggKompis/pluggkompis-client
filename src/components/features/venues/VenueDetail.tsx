@@ -1,6 +1,6 @@
 import React from "react";
 import { Mail, Phone } from "lucide-react";
-import { Card, Tag } from "../../common";
+import { Card, SubjectTag } from "../../common";
 import { VenueDetail as VenueDetailType } from "@/types";
 
 interface VenueDetailProps {
@@ -8,6 +8,11 @@ interface VenueDetailProps {
 }
 
 export const VenueDetail: React.FC<VenueDetailProps> = ({ venue }) => {
+  // Get unique subjects from all timeslots
+  const uniqueSubjects = venue.timeSlots
+    .flatMap((slot) => slot.subjects)
+    .filter((subject, index, self) => self.findIndex((s) => s.id === subject.id) === index);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -18,14 +23,9 @@ export const VenueDetail: React.FC<VenueDetailProps> = ({ venue }) => {
       <Card>
         <h3 className="mb-4">Tillgängliga ämnen</h3>
         <div className="flex flex-wrap gap-2">
-          {venue.timeSlots
-            .flatMap((slot) => slot.subjects)
-            .filter((subject, index, self) => self.indexOf(subject) === index)
-            .map((subject, index) => (
-              <Tag key={index} variant="subject">
-                {subject}
-              </Tag>
-            ))}
+          {uniqueSubjects.map((subject) => (
+            <SubjectTag key={subject.id} name={subject.name} icon={subject.icon} />
+          ))}
         </div>
       </Card>
 

@@ -1,4 +1,4 @@
-import { VolunteerApplication } from "@/types";
+import { VolunteerApplication, Subject } from "@/types";
 
 // Basic venue info for list views (matches VenueDto from backend)
 export interface Venue {
@@ -17,7 +17,7 @@ export interface Venue {
   coordinatorName: string;
 
   // Aggregated data for display
-  availableSubjects: string[]; // List of subject names
+  availableSubjects: Subject[]; // List of subject names
   availableDays: string[]; // List of days (e.g., ["Monday", "Tuesday"])
 
   createdAt?: string;
@@ -58,16 +58,38 @@ export interface VolunteerSummary {
   subjects: string[]; // List of subject names
 }
 
+// TimeSlot details
+export interface TimeSlot {
+  id: string;
+  venueId: string;
+
+  dayOfWeek: WeekDay;
+  startTime: string;
+  endTime: string;
+
+  maxStudents: number;
+  status: TimeSlotStatus;
+
+  subjects: Subject[]; // Full subject details
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // TimeSlot summary (lightweight version for venue display)
 export interface TimeSlotSummary {
   id: string;
-  dayOfWeek: WeekDay;
+  venueId: string;
+  venueName: string;
+  dayOfWeek: string;
   startTime: string; // "16:00:00"
   endTime: string; // "18:00:00"
   maxStudents: number;
-  availableSpots?: number; // Calculated by backend
-  status: TimeSlotStatus;
-  subjects: string[]; // Subject names
+  availableSpots: number;
+  status: string;
+  subjects: Subject[];
+  isRecurring: boolean;
+  specificDate?: string;
+  currentBookings: number;
 }
 
 export enum TimeSlotStatus {
@@ -141,8 +163,8 @@ export interface UpdateVenueRequest {
 // Filter params for venue search (matches VenueFilterParams from backend)
 export interface VenueFilterParams {
   city?: string;
-  subjectId?: string;
-  dayOfWeek?: WeekDay;
+  subjectIds?: string[];
+  daysOfWeek?: WeekDay[];
   isActive?: boolean;
   pageNumber?: number;
   pageSize?: number;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,6 +17,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string>("");
@@ -37,12 +38,19 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     if (loginComplete && user) {
       console.log("🚀 Login - Redirecting with user role:", user.role);
-      const dashboardRoute = getDashboardRoute(user.role);
-      console.log("🎯 Dashboard route:", dashboardRoute);
-      navigate(dashboardRoute);
-      // No setState here!
+
+      const from = (location.state as { from?: string })?.from;
+
+      if (from) {
+        console.log("🔙 Redirecting to:", from);
+        navigate(from);
+      } else {
+        const dashboardRoute = getDashboardRoute(user.role);
+        console.log("🎯 Dashboard route:", dashboardRoute);
+        navigate(dashboardRoute);
+      }
     }
-  }, [loginComplete, user, navigate]); // Remove getDashboardRoute from deps
+  }, [loginComplete, user, navigate, location.state]);
 
   const {
     register,

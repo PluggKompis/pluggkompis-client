@@ -1,18 +1,4 @@
-import { Subject } from "./subject.types";
-import { WeekDay, TimeSlotStatus } from "./venue.types";
-
-export interface TimeSlot {
-  id: string;
-  venueId: string;
-  dayOfWeek: WeekDay;
-  startTime: string;
-  endTime: string;
-  maxStudents: number;
-  subjects: Subject[];
-  status: TimeSlotStatus;
-  createdAt: string;
-  updatedAt: string;
-}
+import { TimeSlot } from "./venue.types";
 
 export interface Booking {
   id: string;
@@ -20,12 +6,26 @@ export interface Booking {
   timeSlot?: TimeSlot;
   studentId?: string;
   childId?: string;
-  bookingDate: string;
+  bookedByUserId: string; // matches BE (BookedByUserId)
+  bookingDate: string; // Local calendar date
+  bookedAt: string; // when booking was created
   status: BookingStatus;
-  selectedSubjects: Subject[];
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  cancelledAt?: string; // when cancelled
+  childName?: string; // for display
+  venueName?: string; // for display
+  timeSlotTime?: string; // for display
+}
+
+export interface CreateBookingRequest {
+  timeSlotId: string;
+  bookingDate: string; // ISO date string
+  childId?: string; // Required if parent, null if student
+  notes?: string;
+}
+
+export interface CancelBookingRequest {
+  bookingId: string;
 }
 
 export enum BookingStatus {

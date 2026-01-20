@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { User, AlertCircle } from "lucide-react";
 import { ChildrenList } from "@/components/features/parent/ChildrenList";
 import { ParentBookingsList } from "@/components/features/parent/ParentBookingsList";
 import { Button } from "@/components/common";
@@ -9,10 +9,21 @@ import { useAuth } from "@/hooks";
 export const ParentDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"children" | "bookings">("children");
   const { user } = useAuth();
+  const location = useLocation();
+
+  const message = (location.state as { message?: string })?.message; // Get message from navigation state
 
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="mb-8">Min Föräldrapanel</h1>
+
+      {/* Show warning message if redirected from booking */}
+      {message && (
+        <div className="mb-6 p-4 bg-warning/10 border border-warning rounded-lg flex items-start gap-3">
+          <AlertCircle size={20} className="text-warning flex-shrink-0 mt-0.5" />
+          <p className="text-warning font-medium">{message}</p>
+        </div>
+      )}
 
       {/* Profile Quick Access */}
       <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
