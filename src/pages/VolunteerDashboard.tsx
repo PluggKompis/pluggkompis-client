@@ -5,13 +5,14 @@ import { MyShifts } from "@/components/features/volunteers/MyShifts";
 import { AvailableShifts } from "@/components/features/volunteers/AvailableShifts";
 import { ExportHours } from "@/components/features/volunteers/ExportHours";
 import { VolunteerProfile } from "@/components/features/volunteers/VolunteerProfile";
+import { MyApplications } from "@/components/features/volunteers/MyApplications";
 import { Button } from "@/components/common";
 import { useAuth } from "@/hooks";
 
 export const VolunteerDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"shifts" | "available" | "export" | "profile">(
-    "shifts"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "applications" | "shifts" | "available" | "export"
+  >("profile");
   const { user } = useAuth();
 
   return (
@@ -31,13 +32,25 @@ export const VolunteerDashboard: React.FC = () => {
         </div>
         <Link to="/profile">
           <Button variant="outline" size="sm">
-            Redigera profil
+            Kontoinställningar
           </Button>
         </Link>
       </div>
 
       {/* Tabs */}
       <div className="tabs">
+        <button
+          onClick={() => setActiveTab("profile")}
+          className={`tab ${activeTab === "profile" ? "tab-active" : ""}`}
+        >
+          Volontärprofil
+        </button>
+        <button
+          onClick={() => setActiveTab("applications")}
+          className={`tab ${activeTab === "applications" ? "tab-active" : ""}`}
+        >
+          Mina Ansökningar
+        </button>
         <button
           onClick={() => setActiveTab("shifts")}
           className={`tab ${activeTab === "shifts" ? "tab-active" : ""}`}
@@ -56,20 +69,15 @@ export const VolunteerDashboard: React.FC = () => {
         >
           Exportera Timmar
         </button>
-        <button
-          onClick={() => setActiveTab("profile")}
-          className={`tab ${activeTab === "profile" ? "tab-active" : ""}`}
-        >
-          Volontärprofil
-        </button>
       </div>
 
       {/* Tab Content */}
       <div className="mt-8">
+        {activeTab === "profile" && <VolunteerProfile />}
+        {activeTab === "applications" && <MyApplications />}
         {activeTab === "shifts" && <MyShifts />}
         {activeTab === "available" && <AvailableShifts />}
         {activeTab === "export" && <ExportHours />}
-        {activeTab === "profile" && <VolunteerProfile />}
       </div>
     </div>
   );

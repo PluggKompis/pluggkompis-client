@@ -13,19 +13,52 @@ interface VolunteerCardProps {
       | Array<{
           name: string;
           icon?: string;
-          confidenceLevel?: "Beginner" | "Intermediate" | "Expert";
+          confidenceLevel?: "Beginner" | "Intermediate" | "Advanced";
+        }>
+      | Array<{
+          subject: {
+            id: string;
+            name: string;
+            icon: string;
+          };
+          confidenceLevel: "Beginner" | "Intermediate" | "Advanced";
         }>;
   };
 }
 
 export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer }) => {
   const normalizeSubject = (
-    subject: string | { name: string; icon?: string; confidenceLevel?: string }
-  ) => {
+    subject:
+      | string
+      | { name: string; icon?: string; confidenceLevel?: string }
+      | { subject: { id: string; name: string; icon: string }; confidenceLevel?: string }
+  ): { id?: string; name: string; icon?: string; confidenceLevel?: string } => {
+    // String case
     if (typeof subject === "string") {
       return { name: subject, icon: undefined, confidenceLevel: undefined };
     }
-    return subject;
+
+    // Nested structure from backend (has 'subject' property)
+    if ("subject" in subject && subject.subject) {
+      return {
+        id: subject.subject.id,
+        name: subject.subject.name,
+        icon: subject.subject.icon,
+        confidenceLevel: subject.confidenceLevel,
+      };
+    }
+
+    // Flat structure (has 'name' property directly)
+    if ("name" in subject) {
+      return {
+        name: subject.name,
+        icon: subject.icon,
+        confidenceLevel: subject.confidenceLevel,
+      };
+    }
+
+    // Fallback (should never reach here, but satisfies TypeScript)
+    return { name: "Unknown", icon: undefined, confidenceLevel: undefined };
   };
 
   // Map confidence levels to Swedish text and colors
@@ -33,24 +66,25 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer }) => {
     if (!level) return null;
 
     const badges = {
-      Expert: { text: "Expert", variant: "success" as const },
-      Intermediate: { text: "Erfaren", variant: "warning" as const },
-      Beginner: { text: "Nybörjare", variant: "error" as const },
+      Advanced: {
+        text: "Expert",
+        className: "bg-confidence-advanced text-primary-dark", // Rich gold
+      },
+      Intermediate: {
+        text: "Erfaren",
+        className: "bg-confidence-intermediate text-primary-dark", // Medium amber
+      },
+      Beginner: {
+        text: "Nybörjare",
+        className: "bg-confidence-beginner text-primary-dark", // Light peach
+      },
     };
 
     const badge = badges[level as keyof typeof badges];
     if (!badge) return null;
 
     return (
-      <span
-        className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-          badge.variant === "success"
-            ? "bg-success/20 text-success"
-            : badge.variant === "warning"
-              ? "bg-warning/20 text-warning"
-              : "bg-neutral-bg text-neutral-secondary"
-        }`}
-      >
+      <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${badge.className}`}>
         {badge.text}
       </span>
     );
@@ -76,27 +110,30 @@ export const VolunteerCard: React.FC<VolunteerCardProps> = ({ volunteer }) => {
 
         {/* Experience */}
         {volunteer.experience && (
-          <div className="flex items-start gap-2">
-            <Briefcase size={16} className="text-neutral-secondary mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-neutral-secondary uppercase mb-1">
-                Erfarenhet
-              </p>
-              <p className="text-sm">{volunteer.experience}</p>
+          <div className="space-y-1">
+            {/* Icon + title */}
+            <div className="flex items-center gap-2">
+              <Briefcase size={16} className="text-primary-dark flex-shrink-0" />
+              <p className="text-primary-dark text-sm font-medium uppercase">Erfarenhet</p>
             </div>
+
+            {/* Description – aligned with icon */}
+            <p className="text-neutral-secondary text-sm">{volunteer.experience}</p>
           </div>
         )}
 
         {/* Subjects with Confidence Levels */}
         <div>
-          <p className="text-xs font-semibold text-neutral-secondary uppercase mb-2">
+          <p className="text-primary-dark text-sm font-medium uppercase mb-2">
             Ämnen som jag hjälper till med
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {volunteer.subjects.map((subject, idx) => {
               const normalized = normalizeSubject(subject);
+              // Use subject ID if available, otherwise fall back to index
+              const key = normalized.id || `subject-${idx}`;
               return (
-                <div key={idx} className="flex flex-col gap-1">
+                <div key={key} className="flex items-center gap-1.5">
                   <SubjectTag name={normalized.name} icon={normalized.icon} />
                   {getConfidenceBadge(normalized.confidenceLevel)}
                 </div>

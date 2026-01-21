@@ -28,6 +28,11 @@ export default {
         'status-open': '#24A54F',
         'status-full': '#DE7573',
         'status-cancelled': '#829D94',
+
+        // Confidence level badges (warm progression) ← ADD THIS
+        'confidence-beginner': '#EFD48C',
+        'confidence-intermediate': '#E6C149',
+        'confidence-advanced': '#D4AA3A',
       },
       fontFamily: {
         sans: ['Afacad', 'system-ui', 'sans-serif'],
