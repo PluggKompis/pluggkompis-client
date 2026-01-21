@@ -1,35 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { authService } from "@/services";
+import { authService, parentService } from "@/services"; // ← Use parentService
 import { AuthContext, AuthContextType, User } from "./AuthContext";
-import { UserRole } from "@/types";
+import { Child, UserRole } from "@/types";
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// Helper function to convert c# enum role to TypeScript enum string
+// Helper function to convert C# enum role to TypeScript enum
 const convertToUserRole = (role: number | string): UserRole => {
-  // If it's already a number, return it directly
   if (typeof role === "number") {
     return role as UserRole;
   }
 
-  // If it's a string, convert role NAME to role number
   const roleNameMap: Record<string, UserRole> = {
-    Coordinator: UserRole.Coordinator, // 0
-    Volunteer: UserRole.Volunteer, // 1
-    Parent: UserRole.Parent, // 2
-    Student: UserRole.Student, // 3
+    Coordinator: UserRole.Coordinator,
+    Volunteer: UserRole.Volunteer,
+    Parent: UserRole.Parent,
+    Student: UserRole.Student,
   };
 
   const converted = roleNameMap[role];
   console.log("🔄 Converting role string:", role, "→", converted);
-  return converted !== undefined ? converted : UserRole.Student; // Default to Student
+  return converted !== undefined ? converted : UserRole.Student;
 };
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Helper: Fetch children for parents
+  const fetchChildrenForParent = async (): Promise<Child[]> => {
+    // ← Remove userId parameter
+    try {
+      const result = await parentService.getMyChildren();
+      if (result.isSuccess && result.data) {
+        console.log("✅ Fetched children:", result.data);
+        return result.data;
+      }
+      console.warn("⚠️ No children data returned");
+      return [];
+    } catch (error) {
+      console.error("❌ Failed to fetch children:", error);
+      return [];
+    }
+  };
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -39,7 +54,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (token && storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+
+          // If parent, fetch fresh children data
+          if (parsedUser.role === UserRole.Parent) {
+            const children = await fetchChildrenForParent();
+            parsedUser.children = children;
+            localStorage.setItem("user", JSON.stringify(parsedUser));
+          }
+
+          setUser(parsedUser);
         } catch (error) {
           console.error("Failed to parse stored user:", error);
           authService.logout();
@@ -64,12 +88,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const user: User = {
         id: userData.id,
         email: userData.email,
-        role: convertToUserRole(userData.role), // convert back the enum to string role
+        role: convertToUserRole(userData.role),
         firstName: userData.firstName,
         lastName: userData.lastName,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      // Fetch children if parent
+      if (user.role === UserRole.Parent) {
+        user.children = await fetchChildrenForParent();
+      }
 
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
@@ -96,7 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const user: User = {
         id: userData.id,
         email: userData.email,
-        role: convertToUserRole(userData.role), // convert back the enum to string role
+        role: convertToUserRole(userData.role),
         firstName: userData.firstName,
         lastName: userData.lastName,
         createdAt: new Date().toISOString(),
@@ -107,10 +136,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("🔍 Converted role:", user.role);
       console.log("🔍 User object to store:", user);
 
+      // Fetch children if parent (will be empty on first register, but keeps structure consistent)
+      if (user.role === UserRole.Parent) {
+        user.children = await fetchChildrenForParent();
+      }
+
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
     } else {
       throw new Error(result.errors?.join(", ") || "Registration failed");
+    }
+  };
+
+  // NEW: Refresh user data (mainly for updating children)
+  const refreshUserData = async () => {
+    if (!user) return;
+
+    console.log("🔄 Refreshing user data...");
+
+    // Only refresh children for parents
+    if (user.role === UserRole.Parent) {
+      const children = await fetchChildrenForParent();
+      const updatedUser = { ...user, children };
+
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      console.log("✅ User data refreshed:", updatedUser);
     }
   };
 
@@ -126,6 +178,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

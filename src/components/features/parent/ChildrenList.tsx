@@ -5,8 +5,11 @@ import { ChildCard } from "./ChildCard";
 import { ChildModal } from "./ChildModal";
 import { parentService } from "@/services/parentService";
 import type { Child } from "@/types";
+import { useAuth } from "@/hooks";
 
 export const ChildrenList: React.FC = () => {
+  const { refreshUserData } = useAuth();
+
   // State management
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,13 +62,15 @@ export const ChildrenList: React.FC = () => {
   };
 
   // Called when child is successfully saved (added or updated)
-  const handleSaveSuccess = () => {
+  const handleSaveSuccess = async () => {
+    // ← Changed to async
     setIsModalOpen(false);
     setEditingChild(undefined);
-    fetchChildren(); // Refresh the list to show latest data
+    await fetchChildren(); // Refresh the list to show latest data
+    await refreshUserData();
   };
 
-  // Handels child deletion
+  // Handles child deletion
   const handleDeleteChild = async (childId: string) => {
     // Store current state for potential rollback
     const previousChildren = [...children];
@@ -77,7 +82,9 @@ export const ChildrenList: React.FC = () => {
       // Attempt deletion
       const result = await parentService.deleteChild(childId);
 
-      if (!result.isSuccess) {
+      if (result.isSuccess) {
+        await refreshUserData();
+      } else {
         // Rollback on failure
         setChildren(previousChildren);
         setError(result.errors?.[0] || "Kunde inte ta bort barn.");
