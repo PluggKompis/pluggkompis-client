@@ -1,68 +1,59 @@
 import { api } from "./api";
-import { OperationResult, Booking, CreateBookingRequest, BookingStatus } from "@/types";
+import { Booking, CreateBookingRequest, OperationResult } from "@/types";
 
-class BookingService {
-  private baseUrl = "/bookings";
-
-  // Get all bookings for the current user
-  async getMyBookings(): Promise<OperationResult<Booking[]>> {
-    const response = await api.get<OperationResult<Booking[]>>(this.baseUrl);
+export const bookingService = {
+  // Get all bookings for logged-in user
+  getMyBookings: async (): Promise<OperationResult<Booking[]>> => {
+    const response = await api.get<OperationResult<Booking[]>>("/bookings");
     return response.data;
-  }
+  },
 
-  /**
-   * Create a new booking
-   * @param timeSlotId - The time slot to book
-   * @param bookingDate - The date to book (YYYY-MM-DD or ISO string)
-   * @param childId - Child ID if booking for child (parent only)
-   * @param notes - Optional notes
-   */
-  async createBooking(
+  // Create a booking
+  createBooking: async (
     timeSlotId: string,
     bookingDate: string,
     childId?: string,
     notes?: string
-  ): Promise<OperationResult<Booking>> {
+  ): Promise<OperationResult<Booking>> => {
     const request: CreateBookingRequest = {
       timeSlotId,
       bookingDate,
       childId,
       notes,
     };
-
-    const response = await api.post<OperationResult<Booking>>(this.baseUrl, request);
-
+    const response = await api.post<OperationResult<Booking>>("/bookings", request);
     return response.data;
-  }
+  },
 
-  /**
-   * Cancel a booking
-   * @param bookingId - The booking to cancel
-   */
-  async cancelBooking(bookingId: string): Promise<OperationResult<void>> {
-    const response = await api.delete<OperationResult<void>>(`${this.baseUrl}/${bookingId}`);
+  // Cancel a booking - handles 204 No Content response
+  cancelBooking: async (bookingId: string): Promise<OperationResult<void>> => {
+    try {
+      const response = await api.delete(`/bookings/${bookingId}`);
 
-    return response.data;
-  }
+      // Backend returns 204 No Content with empty body
+      if (response.status >= 200 && response.status < 300) {
+        console.log("✅ Booking cancelled successfully");
+        return {
+          isSuccess: true,
+          data: undefined,
+          errors: [],
+        };
+      }
 
-  // Filter bookings by status
-  filterByStatus(bookings: Booking[], status: BookingStatus): Booking[] {
-    return bookings.filter((b) => b.status === status);
-  }
+      return {
+        isSuccess: false,
+        data: undefined,
+        errors: ["Unexpected response from server"],
+      };
+    } catch (err) {
+      console.error("❌ Cancel booking error:", err);
 
-  // Check if booking can be cancelled (2-hour window before session start)
-  canCancelBooking(booking: Booking, timeSlot: { startTime: string }): boolean {
-    const bookingDate = new Date(booking.bookingDate);
-    const [hours, minutes] = timeSlot.startTime.split(":").map(Number);
-
-    const sessionStart = new Date(bookingDate);
-    sessionStart.setHours(hours, minutes, 0, 0);
-
-    const now = new Date();
-    const hoursUntilSession = (sessionStart.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-    return hoursUntilSession >= 2;
-  }
-}
-
-export const bookingService = new BookingService();
+      // Simple error handling without complex type checking
+      return {
+        isSuccess: false,
+        data: undefined,
+        errors: ["Kunde inte avboka bokningen"],
+      };
+    }
+  },
+};

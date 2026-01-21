@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { UserRole } from "@/types";
+import { UserRole, Child } from "@/types";
 
 export interface User {
   id: string;
@@ -9,6 +9,7 @@ export interface User {
   lastName: string;
   createdAt: string;
   updatedAt: string;
+  children?: Child[];
 }
 
 export interface AuthContextType {
@@ -24,6 +25,7 @@ export interface AuthContextType {
     role: UserRole;
   }) => Promise<void>;
   logout: () => void;
+  refreshUserData: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Input, Select, Spinner, SubjectTag } from "../../common";
-import { TimeSlotSummary, Parent } from "@/types";
+import { TimeSlotSummary, Parent, UserRole } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { bookingService } from "@/services";
 import { Calendar, Clock } from "lucide-react";
@@ -17,6 +17,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState(false); // ← Added
 
   // If parent, require child selection
   useEffect(() => {
@@ -26,13 +27,54 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
     }
   }, [user]);
 
+  // Helper: Get next occurrence of a recurring slot
+  const getNextOccurrence = (dayOfWeek: string): string => {
+    const today = new Date();
+    const targetDay = dayOfWeekToNumber(dayOfWeek);
+    const currentDay = today.getDay();
+
+    let daysUntilTarget = targetDay - currentDay;
+    if (daysUntilTarget <= 0) {
+      daysUntilTarget += 7;
+    }
+
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + daysUntilTarget);
+
+    return nextDate.toISOString().split("T")[0];
+  };
+
+  // Helper: Convert day name to JS day number
+  const dayOfWeekToNumber = (dayName: string): number => {
+    const dayMap: Record<string, number> = {
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
+    };
+    return dayMap[dayName] ?? 1;
+  };
+
   const handleSubmit = async () => {
     setError("");
+    setSuccess(false); // ← Reset
     setIsSubmitting(true);
 
     try {
       const parent = user as Parent | undefined;
-      const isParent = parent?.children !== undefined;
+      const isParent = user?.role === UserRole.Parent;
+
+      // Validation: Parent must have children registered first
+      if (isParent && (!parent?.children || parent.children.length === 0)) {
+        setError(
+          "Du måste lägga till minst ett barn innan du kan boka. Gå till 'Mina Barn' i din föräldrapanel."
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
       // Validation: Parent must select a child
       if (isParent && !selectedChildId) {
@@ -41,16 +83,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
         return;
       }
 
+      // Calculate the correct booking date
+      let bookingDate: string;
+      if (timeSlot.specificDate) {
+        bookingDate = timeSlot.specificDate.split("T")[0];
+      } else {
+        bookingDate = getNextOccurrence(timeSlot.dayOfWeek);
+      }
+
+      console.log("📅 Booking date:", bookingDate);
+
       // Call booking service
       const result = await bookingService.createBooking(
         timeSlot.id,
-        new Date().toISOString().split("T")[0],
+        bookingDate,
         selectedChildId || undefined,
         notes || undefined
       );
 
       if (result.isSuccess) {
-        onSuccess();
+        setSuccess(true); // ← Show success
+
+        // Wait to show success, then close
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1500);
       } else {
         setError(result.errors?.join(", ") || "Något gick fel vid bokningen");
       }
@@ -76,6 +134,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
             <div className="flex items-center gap-2 text-sm text-neutral-secondary">
               <Calendar size={16} />
               <span>{timeSlot.dayOfWeek}</span>
+              {timeSlot.specificDate && (
+                <span className="text-primary font-medium">
+                  ({new Date(timeSlot.specificDate).toLocaleDateString("sv-SE")})
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 text-sm text-neutral-secondary">
@@ -97,6 +160,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
           </div>
         </div>
 
+        {/* Success Message */}
+        {success && (
+          <div className="p-3 bg-success/10 border border-success rounded-lg">
+            <p className="text-success text-sm font-medium">✓ Bokningen lyckades!</p>
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div className="p-3 bg-error/10 border border-error rounded-lg">
@@ -110,7 +180,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
             label="Välj barn *"
             value={selectedChildId}
             onChange={(e) => setSelectedChildId(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || success} // ← Disable on success
           >
             <option value="">-- Välj barn --</option>
             {parent.children.map((child) => (
@@ -127,22 +197,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({ timeSlot, onClose, o
           placeholder="T.ex. 'Behöver extra hjälp med ekvationer'"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          disabled={isSubmitting}
+          disabled={isSubmitting || success} // ← Disable on success
         />
 
         {/* Action Buttons */}
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Avbryt
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting || success}>
+            {success ? "Stäng" : "Avbryt"}
           </Button>
           <Button
             variant="primary"
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || success}
             className="flex items-center gap-2"
           >
             {isSubmitting && <Spinner size="sm" />}
-            {isSubmitting ? "Bokar..." : "Bekräfta bokning"}
+            {success ? "✓ Bokad!" : isSubmitting ? "Bokar..." : "Bekräfta bokning"}
           </Button>
         </div>
       </div>

@@ -1,9 +1,9 @@
-import { TimeSlot } from "./venue.types";
+import { TimeSlot, TimeSlotSummary } from "./venue.types";
 
 export interface Booking {
   id: string;
   timeSlotId: string;
-  timeSlot?: TimeSlot;
+  timeSlot?: TimeSlotSummary;
   studentId?: string;
   childId?: string;
   bookedByUserId: string; // matches BE (BookedByUserId)
@@ -14,7 +14,9 @@ export interface Booking {
   cancelledAt?: string; // when cancelled
   childName?: string; // for display
   venueName?: string; // for display
-  timeSlotTime?: string; // for display
+  venueAddress?: string;
+  venueCity?: string;
+  timeSlotTime?: string;
 }
 
 export interface CreateBookingRequest {
