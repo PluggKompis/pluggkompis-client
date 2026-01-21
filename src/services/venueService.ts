@@ -6,8 +6,10 @@ import {
   CreateVenueRequest,
   UpdateVenueRequest,
   OperationResult,
+  ApplyToVenueRequest,
   TimeSlotSummary,
   PaginatedResponse,
+  VolunteerApplication,
 } from "@/types";
 
 export const venueService = {
@@ -65,6 +67,14 @@ export const venueService = {
   // Delete venue (coordinator only)
   deleteVenue: async (id: string): Promise<OperationResult<void>> => {
     const response = await api.delete<OperationResult<void>>(`/venues/${id}`);
+    return response.data;
+  },
+
+  // Apply to volunteer at a venue (Volunteer only)
+  applyToVenue: async (
+    data: ApplyToVenueRequest
+  ): Promise<OperationResult<VolunteerApplication>> => {
+    const response = await api.post<OperationResult<VolunteerApplication>>("/venues/apply", data);
     return response.data;
   },
 };

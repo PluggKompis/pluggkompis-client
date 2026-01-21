@@ -178,3 +178,9 @@ export interface VenueFilterParams {
   pageNumber?: number;
   pageSize?: number;
 }
+
+// Request for volunteer to apply to a venue
+export interface ApplyToVenueRequest {
+  venueId: string;
+  message?: string; // Optional message from volunteer
+}

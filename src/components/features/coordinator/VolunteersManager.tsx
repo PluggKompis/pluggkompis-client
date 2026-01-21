@@ -2,19 +2,19 @@ import React, { useState } from "react"; // add useEffect here
 import { Mail, Phone } from "lucide-react";
 import { Card, Button, Tag, Input } from "../../common";
 import { VolunteerApplicationCard } from "./VolunteerApplicationCard";
-import { VolunteerApplication, VolunteerApplicationStatus } from "@/types"; // add VolunteerWithVenue here
+import { CoordinatorVolunteerApplication, ApplicationStatus } from "@/types"; // add VolunteerWithVenue here
 
 export const VolunteersManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"active" | "pending" | "all">("active");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Mock data for now (replace with API call later)
-  const mockApplications: VolunteerApplication[] = [
+  const mockApplications: CoordinatorVolunteerApplication[] = [
     {
       id: "1",
       volunteerId: "v1",
       venueId: "venue1",
-      status: VolunteerApplicationStatus.Pending,
+      status: ApplicationStatus.Pending,
       appliedAt: new Date().toISOString(),
       volunteerName: "Maria Karlsson",
       volunteerEmail: "maria.karlsson@email.se",
