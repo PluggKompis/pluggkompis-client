@@ -1,21 +1,42 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { MapPin, Clock, AlertCircle } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { MapPin, Clock, AlertCircle, FileText } from "lucide-react";
 import { VenueDetail } from "../components/features/venues/VenueDetail";
 import { VenueSchedule } from "../components/features/venues/VenueSchedule";
 import { VenueMap } from "../components/features/venues/VenueMap";
 import { VolunteerCard } from "../components/features/venues/VolunteerCard";
-import { Spinner } from "../components/common";
-import { VenueDetail as VenueDetailType } from "@/types";
-import { venueService } from "@/services";
+import { Spinner, Button } from "../components/common";
+import { VenueDetail as VenueDetailType, UserRole } from "@/types";
+import { venueService, volunteerService } from "@/services";
+import { useAuth } from "@/hooks";
 import heroImage from "../assets/hero.jpg";
 
 export const VenueDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
   const [isLoading, setIsLoading] = useState(true);
   const [venue, setVenue] = useState<VenueDetailType | null>(null);
   const [error, setError] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"schedule" | "volunteers" | "about">("schedule");
+  const [isApplying, setIsApplying] = useState(false);
+  const [applySuccess, setApplySuccess] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
+
+  // Read tab from URL query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabFromUrl = params.get("tab");
+    if (tabFromUrl === "about" || tabFromUrl === "volunteers" || tabFromUrl === "schedule") {
+      setActiveTab(tabFromUrl);
+    }
+  }, []);
+
+  const isVolunteer = user?.role === UserRole.Volunteer;
+
+  // Check if user is already a volunteer at this venue
+  const isAlreadyVolunteer = venue?.volunteers.some((v) => v.volunteerId === user?.id);
 
   useEffect(() => {
     const fetchVenue = async () => {
@@ -42,6 +63,63 @@ export const VenueDetailPage: React.FC = () => {
     fetchVenue();
   }, [id]);
 
+  // Handle volunteer application
+  const handleApplyToVenue = async () => {
+    if (!id) return;
+
+    // Clear previous errors
+    setApplyError(null);
+
+    // Check if authenticated
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: `/venues/${id}` } });
+      return;
+    }
+
+    try {
+      setIsApplying(true);
+
+      // Check if profile exists
+      const profileResult = await volunteerService.getMyProfile();
+
+      if (!profileResult.isSuccess || !profileResult.data) {
+        // Redirect to volunteer dashboard to create profile
+        navigate("/volunteer", {
+          state: {
+            message: "Du måste skapa en volontärprofil innan du kan ansöka till platser.",
+          },
+        });
+        return;
+      }
+
+      // Apply to venue
+      const applyResult = await venueService.applyToVenue({
+        venueId: id,
+        message: undefined,
+      });
+
+      if (applyResult.isSuccess) {
+        setApplySuccess(true);
+        setTimeout(() => {
+          navigate("/volunteer", {
+            state: {
+              message: "Din ansökan har skickats! Koordinatorn kommer att granska den.",
+              activeTab: "applications",
+            },
+          });
+        }, 2000);
+      } else {
+        // Backend error - show in Swedish
+        setApplyError("Du har redan ansökt till denna plats eller är redan volontär här.");
+      }
+    } catch (err) {
+      console.error("Failed to apply:", err);
+      setApplyError("Ett oväntat fel uppstod. Försök igen senare.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -56,7 +134,7 @@ export const VenueDetailPage: React.FC = () => {
         <div className="max-w-md mx-auto p-6 bg-error/10 border border-error rounded-lg flex items-start gap-3">
           <AlertCircle size={24} className="text-error flex-shrink-0" />
           <div>
-            <h3 className="font-semibold mb-1">Kunde inte ladda plats</h3>
+            <h3 className="font-semibold mb-1">Kunde inte hitta platsen</h3>
             <p className="text-sm text-neutral-secondary">{error || "Platsen hittades inte"}</p>
           </div>
         </div>
@@ -123,9 +201,81 @@ export const VenueDetailPage: React.FC = () => {
 
       {/* Tab Content */}
       <div className="container mx-auto px-4 py-8">
-        {activeTab === "schedule" && <VenueSchedule venueId={id!} />}
+        {/* Schedule Tab - Different view for volunteers */}
+        {activeTab === "schedule" && !isVolunteer && <VenueSchedule venueId={id!} />}
 
-        {/* Volunteer cards with proper component */}
+        {activeTab === "schedule" && isVolunteer && (
+          <div className="max-w-2xl mx-auto text-center py-12">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-8">
+              <FileText size={48} className="mx-auto mb-4 text-primary" />
+              <h3 className="font-semibold text-xl mb-3">Volontärer bokar inte enskilda pass</h3>
+              <p className="text-neutral-secondary mb-6">
+                Som volontär ansöker du först till en plats. När du blivit godkänd kan du se och
+                anmäla dig till lediga volontärpass under "Tillgängliga Pass" i din volontärpanel.
+              </p>
+
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={() => navigate("/volunteer")}>
+                  Gå till Volontärpanel
+                </Button>
+
+                {/* Show apply button only if not already a volunteer and not already applied successfully */}
+                {!isAlreadyVolunteer && !applySuccess && (
+                  <Button variant="primary" onClick={handleApplyToVenue} disabled={isApplying}>
+                    {isApplying && <Spinner size="sm" className="mr-2" />}
+                    Ansök till denna plats
+                  </Button>
+                )}
+
+                {/* Success message */}
+                {applySuccess && (
+                  <div className="inline-flex items-center gap-2 px-6 py-3 bg-success text-white rounded-lg font-semibold">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    Ansökan skickad!
+                  </div>
+                )}
+
+                {/* Already a volunteer message */}
+                {isAlreadyVolunteer && (
+                  <div className="inline-flex items-center gap-2 px-6 py-3 bg-success/10 border border-success text-success rounded-lg font-semibold">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    Du är redan volontär här
+                  </div>
+                )}
+              </div>
+
+              {/* Error message - below buttons */}
+              {applyError && (
+                <div className="mt-4 p-3 bg-error/10 border border-error rounded-lg flex items-start gap-2">
+                  <AlertCircle size={18} className="text-error flex-shrink-0 mt-0.5" />
+                  <p className="text-error text-sm">{applyError}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Volunteer cards */}
         {activeTab === "volunteers" && (
           <div>
             <h2 className="mb-6">Våra Volontärer</h2>
@@ -142,6 +292,7 @@ export const VenueDetailPage: React.FC = () => {
             )}
           </div>
         )}
+
         {activeTab === "about" && (
           <div className="grid lg:grid-cols-2 gap-8">
             <VenueDetail venue={venue} />

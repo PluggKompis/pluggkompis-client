@@ -1,4 +1,4 @@
-import { VolunteerSubject, Venue, VolunteerApplication, VolunteerApplicationStatus } from "@/types";
+import { VolunteerSubject, Venue, VolunteerApplication, ApplicationStatus } from "@/types";
 
 export enum UserRole {
   Coordinator = 0,
@@ -66,7 +66,7 @@ export interface Volunteer extends User {
 export interface VolunteerWithVenue extends Volunteer {
   currentVenueId?: string;
   currentVenueName?: string;
-  currentStatus?: VolunteerApplicationStatus;
+  currentStatus?: ApplicationStatus;
 }
 
 export interface Coordinator extends User {

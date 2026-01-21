@@ -1,21 +1,17 @@
-export interface VolunteerApplication {
+import { ApplicationStatus } from "./volunteer.types"; // Import shared enum
+
+// For COORDINATOR view of volunteer applications
+export interface CoordinatorVolunteerApplication {
   id: string;
   volunteerId: string;
   venueId: string;
-  status: VolunteerApplicationStatus;
+  status: ApplicationStatus;
   appliedAt: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-  message?: string; // Optional message from volunteer
-  // Include volunteer info for display
+  reviewedAt?: string;
+  message?: string; // Volunteer's application message
+  // Volunteer info for coordinator display
   volunteerName?: string;
   volunteerEmail?: string;
-}
-
-export enum VolunteerApplicationStatus {
-  Pending = "Pending",
-  Approved = "Approved",
-  Declined = "Declined",
 }
 
 export interface CreateVolunteerApplicationRequest {
@@ -24,5 +20,5 @@ export interface CreateVolunteerApplicationRequest {
 }
 
 export interface UpdateVolunteerApplicationRequest {
-  status: VolunteerApplicationStatus;
+  status: ApplicationStatus;
 }

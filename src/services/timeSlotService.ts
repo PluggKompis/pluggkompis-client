@@ -2,9 +2,7 @@ import { api } from "./api";
 import { TimeSlotSummary, OperationResult } from "@/types";
 
 export const timeSlotService = {
-  /**
-   * Get all timeslots for a specific venue
-   */
+  // Get all timeslots for a specific venue
   getVenueTimeSlots: async (
     venueId: string,
     includeCancelled: boolean = false

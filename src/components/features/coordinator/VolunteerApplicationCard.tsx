@@ -1,10 +1,10 @@
 import React from "react";
 import { Mail } from "lucide-react"; // add Phone icon when needed
 import { Card, Button, Tag } from "../../common";
-import { VolunteerApplication } from "@/types";
+import { CoordinatorVolunteerApplication } from "@/types";
 
 interface VolunteerApplicationCardProps {
-  application: VolunteerApplication;
+  application: CoordinatorVolunteerApplication;
   onApprove: (applicationId: string) => void;
   onDecline: (applicationId: string) => void;
 }

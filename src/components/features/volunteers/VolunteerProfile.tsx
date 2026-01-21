@@ -4,6 +4,7 @@ import { Button, Card, EmptyState, Spinner, SubjectTag } from "@/components/comm
 import { volunteerService } from "@/services/volunteerService";
 import { VolunteerProfileDto, VolunteerProfileSubjectFlat } from "@/types";
 import { VolunteerProfileForm } from "./VolunteerProfileForm";
+import { ApprovedVenues } from "@/components/features/volunteers/ApprovedVenues";
 
 export const VolunteerProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -251,33 +252,7 @@ export const VolunteerProfile: React.FC = () => {
           {/* My Venues Section - Shows approved venues only */}
           <Card>
             <h3 className="font-semibold mb-4">Mina Platser</h3>
-            {/* TODO: Connect to backend endpoint GET /api/volunteers/me/applications when available */}
-            {/* For now, show placeholder */}
-            <div className="text-center py-6 text-neutral-secondary text-sm">
-              <p className="mb-2">Du har inte blivit godkänd till några platser ännu.</p>
-              <p className="text-xs">
-                När en koordinator godkänner din ansökan kommer platsen att visas här.
-              </p>
-            </div>
-            {/* 
-            When backend endpoint exists, show:
-            {approvedVenues.length > 0 ? (
-              <div className="space-y-2">
-                {approvedVenues.map((venue) => (
-                  <div key={venue.id} className="p-3 bg-success/5 border border-success/20 rounded-lg">
-                    <p className="font-medium text-sm">{venue.venueName}</p>
-                    <p className="text-xs text-neutral-secondary">
-                      Godkänd {new Date(venue.approvedAt).toLocaleDateString('sv-SE')}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-neutral-secondary text-sm">
-                ...placeholder above...
-              </div>
-            )}
-            */}
+            <ApprovedVenues />
           </Card>
         </div>
       </div>

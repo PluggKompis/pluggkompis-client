@@ -47,3 +47,25 @@ export interface UpdateVolunteerProfileRequest {
     confidenceLevel: "Beginner" | "Intermediate" | "Advanced";
   }>;
 }
+
+// Shared enum for application status (used by both volunteers and coordinators)
+export enum ApplicationStatus {
+  Pending = "Pending",
+  Approved = "Approved",
+  Declined = "Declined",
+}
+
+// For VOLUNTEER view of their own applications
+export interface VolunteerApplication {
+  applicationId: string;
+  volunteerId: string;
+  venueId: string;
+  venueName: string;
+  venueCity: string;
+  venueAddress?: string;
+  status: ApplicationStatus;
+  appliedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  notes?: string; // Coordinator's notes/reason for declining
+}
