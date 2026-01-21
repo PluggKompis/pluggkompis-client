@@ -7,7 +7,7 @@ interface SubjectTagProps {
 
 export const SubjectTag: React.FC<SubjectTagProps> = ({ name, icon }) => {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-2 py-1 rounded font-medium">
+    <span className="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-2 py-1 rounded font-semibold">
       {icon && <span className="text-sm">{icon}</span>}
       <span>{name}</span>
     </span>

@@ -55,7 +55,16 @@ export interface VenueDetail {
 export interface VolunteerSummary {
   volunteerId: string;
   volunteerName: string;
-  subjects: string[]; // List of subject names
+  bio?: string;
+  experience?: string;
+  subjects: Array<{
+    subject: {
+      id: string;
+      name: string;
+      icon: string;
+    };
+    confidenceLevel: "Beginner" | "Intermediate" | "Advanced";
+  }>;
 }
 
 // TimeSlot details

@@ -1,5 +1,5 @@
 /* Import Google Font FIRST */
-@import url("https://fonts.googleapis.com/css2?family=Afacad:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Afacad:wght@400;500;600;700&display=swap");
 
 /* Tailwind directives */
 @tailwind base;
@@ -16,7 +16,7 @@
   }
 
   body {
-    @apply font-sans bg-white text-black;
+    @apply font-sans bg-white text-black; /* Body text is black */
   }
 
   /* Typography */

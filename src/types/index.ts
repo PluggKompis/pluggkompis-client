@@ -15,3 +15,6 @@ export * from "./api.types";
 
 // Application types
 export * from "./application.types";
+
+// Volunteer types
+export * from "./volunteer.types";
