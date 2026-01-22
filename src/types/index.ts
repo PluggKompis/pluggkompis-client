@@ -18,3 +18,6 @@ export * from "./application.types";
 
 // Volunteer types
 export * from "./volunteer.types";
+
+// Coordinator types
+export * from "./coordinator.types";

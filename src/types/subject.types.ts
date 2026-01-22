@@ -20,3 +20,15 @@ export interface VolunteerSubject {
   subject: Subject;
   confidenceLevel: ConfidenceLevel;
 }
+
+export const ConfidenceLevelLabels: Record<ConfidenceLevel, string> = {
+  [ConfidenceLevel.Beginner]: "Nybörjare",
+  [ConfidenceLevel.Intermediate]: "Mellannivå",
+  [ConfidenceLevel.Advanced]: "Avancerad",
+};
+
+export interface VolunteerSubject {
+  subjectId: string;
+  subject: Subject;
+  confidenceLevel: ConfidenceLevel;
+}

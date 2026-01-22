@@ -52,7 +52,7 @@ export enum VolunteerShiftStatus {
   Pending = "Pending",
   Confirmed = "Confirmed",
   Cancelled = "Cancelled",
-  Competed = "Competed", // Matches BE typo
+  Completed = "Completed",
 }
 
 export interface Attendance {

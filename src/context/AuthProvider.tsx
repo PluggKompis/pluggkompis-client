@@ -7,12 +7,8 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// Helper function to convert C# enum role to TypeScript enum
-const convertToUserRole = (role: number | string): UserRole => {
-  if (typeof role === "number") {
-    return role as UserRole;
-  }
-
+// Backend sends strings now, so just validate
+const convertToUserRole = (role: string): UserRole => {
   const roleNameMap: Record<string, UserRole> = {
     Coordinator: UserRole.Coordinator,
     Volunteer: UserRole.Volunteer,
@@ -29,9 +25,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Helper: Fetch children for parents
   const fetchChildrenForParent = async (): Promise<Child[]> => {
-    // ← Remove userId parameter
     try {
       const result = await parentService.getMyChildren();
       if (result.isSuccess && result.data) {
@@ -56,7 +50,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const parsedUser = JSON.parse(storedUser);
 
-          // If parent, fetch fresh children data
           if (parsedUser.role === UserRole.Parent) {
             const children = await fetchChildrenForParent();
             parsedUser.children = children;
@@ -95,7 +88,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         updatedAt: new Date().toISOString(),
       };
 
-      // Fetch children if parent
       if (user.role === UserRole.Parent) {
         user.children = await fetchChildrenForParent();
       }
@@ -136,7 +128,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("🔍 Converted role:", user.role);
       console.log("🔍 User object to store:", user);
 
-      // Fetch children if parent (will be empty on first register, but keeps structure consistent)
       if (user.role === UserRole.Parent) {
         user.children = await fetchChildrenForParent();
       }
@@ -148,13 +139,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // NEW: Refresh user data (mainly for updating children)
+  // Refresh user data (mainly for updating children)
   const refreshUserData = async () => {
     if (!user) return;
 
     console.log("🔄 Refreshing user data...");
 
-    // Only refresh children for parents
     if (user.role === UserRole.Parent) {
       const children = await fetchChildrenForParent();
       const updatedUser = { ...user, children };

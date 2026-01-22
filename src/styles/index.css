@@ -173,6 +173,10 @@
     background-color: #829d94;
   }
 
+  .tag-neutral {
+    @apply bg-neutral-bg text-neutral-secondary border border-neutral-stroke;
+  }
+
   /* ============================================
      HEADER
      ============================================ */

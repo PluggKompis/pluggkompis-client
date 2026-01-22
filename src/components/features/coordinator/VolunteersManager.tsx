@@ -1,37 +1,132 @@
-import React, { useState } from "react"; // add useEffect here
-import { Mail, Phone } from "lucide-react";
-import { Card, Button, Tag, Input } from "../../common";
+import React, { useState, useEffect } from "react";
+import { AlertCircle } from "lucide-react";
+import { Card, Button, Input, Spinner } from "../../common";
 import { VolunteerApplicationCard } from "./VolunteerApplicationCard";
-import { CoordinatorVolunteerApplication, ApplicationStatus } from "@/types"; // add VolunteerWithVenue here
+import { ActiveVolunteerCard } from "@/components/features/coordinator/ActiveVolunteerCard";
+import { coordinatorService, venueService } from "@/services";
+import { CoordinatorVolunteerApplication, VolunteerProfileDto } from "@/types";
 
 export const VolunteersManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"active" | "pending" | "all">("active");
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for now (replace with API call later)
-  const mockApplications: CoordinatorVolunteerApplication[] = [
-    {
-      id: "1",
-      volunteerId: "v1",
-      venueId: "venue1",
-      status: ApplicationStatus.Pending,
-      appliedAt: new Date().toISOString(),
-      volunteerName: "Maria Karlsson",
-      volunteerEmail: "maria.karlsson@email.se",
-      message:
-        "Jag är lärarstudent i sista året och skulle gärna vilja hjälpa till med läxhjälp i naturvetenskap.",
-    },
-  ];
+  // Data states
+  const [pendingApplications, setPendingApplications] = useState<CoordinatorVolunteerApplication[]>(
+    []
+  );
+  const [activeVolunteers, setActiveVolunteers] = useState<VolunteerProfileDto[]>([]);
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch coordinator's venue first (just to get the ID)
+      const venueResult = await venueService.getMyVenue();
+      console.log("🔍 Venue result:", venueResult);
+
+      if (!venueResult.isSuccess || !venueResult.data) {
+        setError("Kunde inte hitta din plats. Se till att du har skapat en plats först.");
+        setLoading(false);
+        return;
+      }
+
+      const venueId = venueResult.data.id;
+
+      // Now fetch the volunteers using dedicated endpoint
+      const volunteersResult = await venueService.getVenueVolunteers(venueId);
+      if (volunteersResult.isSuccess && volunteersResult.data) {
+        console.log("🔍 Volunteers:", volunteersResult.data);
+        setActiveVolunteers(volunteersResult.data);
+      }
+
+      // Fetch pending applications
+      const appsResult = await coordinatorService.getPendingApplications();
+      if (appsResult.isSuccess && appsResult.data) {
+        setPendingApplications(appsResult.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch volunteer data:", err);
+      setError("Ett oväntat fel uppstod. Försök igen senare.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleApprove = async (applicationId: string) => {
-    // TODO: Call API to approve
-    console.log("Approve application:", applicationId);
+    try {
+      const result = await coordinatorService.approveApplication(applicationId, {
+        decisionNote: undefined,
+      });
+
+      if (result.isSuccess) {
+        // Refresh data to show updated lists
+        await fetchData();
+      } else {
+        alert(result.errors?.[0] || "Kunde inte godkänna ansökan");
+      }
+    } catch (err) {
+      console.error("Failed to approve application:", err);
+      alert("Ett oväntat fel uppstod");
+    }
   };
 
-  const handleDecline = async (applicationId: string) => {
-    // TODO: Call API to decline
-    console.log("Decline application:", applicationId);
+  const handleDecline = async (applicationId: string, reason?: string) => {
+    try {
+      const result = await coordinatorService.declineApplication(applicationId, {
+        decisionNote: reason,
+      });
+
+      if (result.isSuccess) {
+        // Refresh data to show updated lists
+        await fetchData();
+      } else {
+        alert(result.errors?.[0] || "Kunde inte avslå ansökan");
+      }
+    } catch (err) {
+      console.error("Failed to decline application:", err);
+      alert("Ett oväntat fel uppstod");
+    }
   };
+
+  // Filter volunteers by search query
+  const filteredVolunteers = activeVolunteers.filter((v) =>
+    v.volunteerName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-error/10 border border-error rounded-lg p-6">
+        <div className="flex items-start gap-3">
+          <AlertCircle size={24} className="text-error flex-shrink-0" />
+          <div>
+            <h3 className="font-semibold mb-1 text-error">Kunde inte ladda volontärer</h3>
+            <p className="text-sm text-neutral-secondary mb-4">{error}</p>
+            <Button onClick={fetchData} variant="outline" size="sm">
+              Försök igen
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -52,38 +147,34 @@ export const VolunteersManager: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab("active")}
-              className={`px-4 py-2 rounded-lg font-semibold ${
-                activeTab === "active" ? "bg-primary text-white" : "bg-neutral-bg"
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                activeTab === "active"
+                  ? "bg-primary text-white"
+                  : "bg-neutral-bg hover:bg-neutral-stroke"
               }`}
             >
-              Aktiva (12)
+              Aktiva ({activeVolunteers.length})
             </button>
             <button
               onClick={() => setActiveTab("pending")}
-              className={`px-4 py-2 rounded-lg font-semibold ${
-                activeTab === "pending" ? "bg-primary text-white" : "bg-neutral-bg"
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                activeTab === "pending"
+                  ? "bg-primary text-white"
+                  : "bg-neutral-bg hover:bg-neutral-stroke"
               }`}
             >
-              Väntande ({mockApplications.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("all")}
-              className={`px-4 py-2 rounded-lg font-semibold ${
-                activeTab === "all" ? "bg-primary text-white" : "bg-neutral-bg"
-              }`}
-            >
-              Alla
+              Väntande ({pendingApplications.length})
             </button>
           </div>
         </div>
       </Card>
 
-      {/* Volunteers List */}
+      {/* Tab Content */}
       <div className="space-y-4">
-        {activeTab === "pending" ? (
+        {activeTab === "pending" && (
           <>
-            {mockApplications.length > 0 ? (
-              mockApplications.map((app) => (
+            {pendingApplications.length > 0 ? (
+              pendingApplications.map((app) => (
                 <VolunteerApplicationCard
                   key={app.id}
                   application={app}
@@ -93,53 +184,27 @@ export const VolunteersManager: React.FC = () => {
               ))
             ) : (
               <Card>
-                <p className="text-center text-neutral-secondary py-4">Inga väntande ansökningar</p>
+                <p className="text-center text-neutral-secondary py-8">Inga väntande ansökningar</p>
               </Card>
             )}
           </>
-        ) : (
+        )}
+
+        {activeTab === "active" && (
           <>
-            {/* Active/All Volunteers */}
-            <Card>
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 bg-primary-light rounded-full flex items-center justify-center text-white font-bold">
-                    AS
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3>Anna Svensson</h3>
-                      <Tag variant="success">Aktiv</Tag>
-                    </div>
-                    <div className="flex flex-col gap-1 mb-2">
-                      <div className="flex items-center gap-2 text-sm text-neutral-secondary">
-                        <Mail size={14} />
-                        <span>anna.svensson@email.se</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-neutral-secondary">
-                        <Phone size={14} />
-                        <span>070-123 45 67</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mb-2">
-                      <Tag variant="subject">Matematik</Tag>
-                      <Tag variant="subject">Fysik</Tag>
-                    </div>
-                    <p className="text-sm text-neutral-secondary">
-                      Genomförda pass: 24 • Totala timmar: 48h
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    Se profil
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Schemalägg
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            {filteredVolunteers.length > 0 ? (
+              filteredVolunteers.map((volunteer) => (
+                <ActiveVolunteerCard key={volunteer.volunteerId} volunteer={volunteer} />
+              ))
+            ) : (
+              <Card>
+                <p className="text-center text-neutral-secondary py-8">
+                  {searchQuery
+                    ? "Inga volontärer hittades"
+                    : "Inga aktiva volontärer ännu. Godkänn ansökningar för att få volontärer."}
+                </p>
+              </Card>
+            )}
           </>
         )}
       </div>
