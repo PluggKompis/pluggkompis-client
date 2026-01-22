@@ -122,33 +122,34 @@ export interface OpeningHours {
 
 // WeekDay enum
 export enum WeekDay {
+  Sunday = "Sunday",   
   Monday = "Monday",
   Tuesday = "Tuesday",
   Wednesday = "Wednesday",
   Thursday = "Thursday",
   Friday = "Friday",
   Saturday = "Saturday",
-  Sunday = "Sunday",
 }
 
+// Swedish labels for display
 export const WeekDayLabels: Record<WeekDay, string> = {
+  [WeekDay.Sunday]: "Söndag",  
   [WeekDay.Monday]: "Måndag",
   [WeekDay.Tuesday]: "Tisdag",
   [WeekDay.Wednesday]: "Onsdag",
   [WeekDay.Thursday]: "Torsdag",
   [WeekDay.Friday]: "Fredag",
   [WeekDay.Saturday]: "Lördag",
-  [WeekDay.Sunday]: "Söndag",
 };
 
 export const WeekDayToNumber: Record<WeekDay, number> = {
-  [WeekDay.Monday]: 0,
-  [WeekDay.Tuesday]: 1,
-  [WeekDay.Wednesday]: 2,
-  [WeekDay.Thursday]: 3,
-  [WeekDay.Friday]: 4,
-  [WeekDay.Saturday]: 5,
-  [WeekDay.Sunday]: 6,
+  [WeekDay.Sunday]: 0,
+  [WeekDay.Monday]: 1,
+  [WeekDay.Tuesday]: 2,
+  [WeekDay.Wednesday]: 3,
+  [WeekDay.Thursday]: 4,
+  [WeekDay.Friday]: 5,
+  [WeekDay.Saturday]: 6,
 };
 
 // Requests for creating/updating venues
@@ -191,4 +192,28 @@ export interface VenueFilterParams {
 export interface ApplyToVenueRequest {
   venueId: string;
   message?: string; // Optional message from volunteer
+}
+
+// Request for creating a new timeslot
+export interface CreateTimeSlotRequest {
+  venueId: string;
+  dayOfWeek: WeekDay;
+  startTime: string; // "16:00:00" format
+  endTime: string; // "18:00:00" format
+  maxStudents: number;
+  isRecurring: boolean;
+  specificDate?: string; // "2026-02-15" format (only for one-time slots)
+  subjectIds: string[]; // Array of subject GUIDs
+}
+
+// Request for updating a timeslot
+export interface UpdateTimeSlotRequest {
+  dayOfWeek: WeekDay;
+  startTime: string; // "16:00:00" format
+  endTime: string; // "18:00:00" format
+  maxStudents: number;
+  isRecurring: boolean;
+  specificDate?: string; // "2026-02-15" format
+  subjectIds: string[];
+  status: TimeSlotStatus; // Can update status (Open, Full, Cancelled)
 }

@@ -1,8 +1,8 @@
 import React from "react";
 
-interface TagProps {
+export interface TagProps {
   children: React.ReactNode;
-  variant?: "default" | "success" | "error" | "warning" | "subject";
+  variant?: "default" | "success" | "warning" | "error" | "subject" | "neutral";
   icon?: string;
   className?: string;
 }
@@ -13,6 +13,7 @@ const variantMap = {
   error: "tag-error",
   warning: "tag-warning",
   subject: "tag-subject",
+  neutral: "tag-neutral",
 };
 
 export const Tag: React.FC<TagProps> = ({

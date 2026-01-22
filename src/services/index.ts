@@ -7,3 +7,4 @@ export * from "./venueService";
 export * from "./parentService";
 export * from "./volunteerService";
 export * from "./coordinatorService";
+export * from "./timeSlotService";

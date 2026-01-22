@@ -1,3 +1,4 @@
+// src/components/features/venues/VenueSchedule.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks";
@@ -6,14 +7,13 @@ import { WeekView } from "../timeslots/WeekView";
 import { BookingModal } from "../bookings/BookingModal";
 import { Parent, TimeSlotSummary, UserRole } from "@/types";
 import { timeSlotService } from "@/services";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 interface VenueScheduleProps {
   venueId: string;
 }
 
-// Helper to map Day Name strings (from backend) to JS Date.getDay() indices
-// 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+// Helper to map Day Name strings to JS Date.getDay() indices
 const dayToIndex: Record<string, number> = {
   Sunday: 0,
   Monday: 1,
@@ -34,6 +34,10 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [slotToBook, setSlotToBook] = useState<TimeSlotSummary | null>(null);
+
+  // Check user roles
+  const isVolunteer = user?.role === UserRole.Volunteer;
+  const isCoordinator = user?.role === UserRole.Coordinator;
 
   // Fetch timeslots for this venue
   const fetchTimeSlots = useCallback(async () => {
@@ -60,17 +64,13 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     fetchTimeSlots();
   }, [fetchTimeSlots]);
 
-  // Handler for when user is not logged in
   const handleLoginRequired = () => {
-    // Save current URL so they can return after login
     navigate("/login", {
       state: { from: `/venues/${venueId}` },
     });
   };
 
-  // Handle booking - check if parent has children
   const handleBookSlot = (slot: TimeSlotSummary) => {
-    // If parent has no children, redirect to parent dashboard
     if (user?.role === UserRole.Parent) {
       const parent = user as Parent;
       if (!parent?.children || parent.children.length === 0) {
@@ -83,21 +83,18 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
       }
     }
 
-    // Otherwise, open the booking modal
     setSlotToBook(slot);
     setIsBookingModalOpen(true);
   };
 
-  // Check if parent has children (for helper text)
   const parentHasChildren = (): boolean => {
     if (user?.role === UserRole.Parent) {
-      const parent = user as Parent; // Use proper type casting
+      const parent = user as Parent;
       return parent?.children && parent.children.length > 0;
     }
     return true;
   };
 
-  // Navigate weeks
   const goToPreviousWeek = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 7);
@@ -110,12 +107,9 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     setSelectedDate(newDate);
   };
 
-  // Get week range (Force Monday to be the start of the week)
   const getWeekDates = (date: Date) => {
     const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay(); // 0=Sun, 1=Mon...
-
-    // Logic: If day is Sunday (0), go back 6 days. Otherwise go back (day - 1).
+    const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
 
@@ -132,10 +126,8 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
   const startOfWeek = weekDates[0];
   const endOfWeek = weekDates[6];
 
-  // Helper to compare date strings
   const isDateInCurrentWeek = (dateString: string) => {
     const d = new Date(dateString);
-    // Reset times to compare dates purely
     const start = new Date(startOfWeek);
     start.setHours(0, 0, 0, 0);
     const end = new Date(endOfWeek);
@@ -151,16 +143,64 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
 
     // 2. Date Check
     if (slot.isRecurring) {
-      return true;
+      // Only show recurring slots if their day appears in the current week
+      const targetDayIndex = dayToIndex[slot.dayOfWeek];
+      const foundDate = weekDates.find((d) => d.getDay() === targetDayIndex);
+
+      if (foundDate) {
+        // Zero out time components for both dates before comparing
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const slotDate = new Date(foundDate);
+        slotDate.setHours(0, 0, 0, 0);
+
+        return slotDate >= today; // Only show if date is today or future
+      }
+      return false;
     } else if (slot.specificDate) {
-      // Only show if the specific date is within the selected week
-      return isDateInCurrentWeek(slot.specificDate);
+      // One-time slots: show only if in current week and not in the past
+      const slotDate = new Date(slot.specificDate);
+      slotDate.setHours(0, 0, 0, 0); // Already zeroing this one
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return isDateInCurrentWeek(slot.specificDate) && slotDate >= today;
     }
 
     return false;
   });
 
-  // Handle slot click from week view → scroll to list item
+  // Separate filter for WeekView (shows all slots in week, not just available)
+  const weekViewSlots = timeSlots.filter((slot) => {
+    // Show ALL statuses in the calendar view (Open, Full, Cancelled)
+
+    if (slot.isRecurring) {
+      // Only show recurring slots if their day appears in the current week and is not in the past
+      const targetDayIndex = dayToIndex[slot.dayOfWeek];
+      const foundDate = weekDates.find((d) => d.getDay() === targetDayIndex);
+
+      if (foundDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const slotDate = new Date(foundDate);
+        slotDate.setHours(0, 0, 0, 0);
+
+        return slotDate >= today; // Don't show past dates
+      }
+      return false;
+    } else if (slot.specificDate) {
+      // One-time slots: show only if in current week and not in the past
+      const slotDate = new Date(slot.specificDate);
+      slotDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return isDateInCurrentWeek(slot.specificDate) && slotDate >= today;
+    }
+
+    return false;
+  });
+
   const handleSlotClick = (slotId: string) => {
     setSelectedSlotId(slotId);
     setTimeout(() => {
@@ -169,7 +209,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     }, 0);
   };
 
-  // Get availability badge variant
   const getAvailabilityVariant = (
     availableSpots: number,
     maxStudents: number
@@ -180,7 +219,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     return "error";
   };
 
-  // Format date in Swedish
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString("sv-SE", {
       day: "numeric",
@@ -189,7 +227,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     });
   };
 
-  // Capitalize first letter helper
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   if (isLoading) {
@@ -208,14 +245,148 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
     );
   }
 
+  // Show message for volunteers
+  if (isVolunteer) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-12">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-8">
+          <FileText size={48} className="mx-auto mb-4 text-primary" />
+          <h3 className="font-semibold text-xl mb-3">Volontärer bokar inte enskilda pass</h3>
+          <p className="text-neutral-secondary mb-6">
+            Som volontär ansöker du först till en plats. När du blivit godkänd kan du se och anmäla
+            dig till lediga volontärpass under "Tillgängliga Pass" i din volontärpanel.
+          </p>
+          <Button variant="primary" onClick={() => navigate("/volunteer")}>
+            Gå till Volontärpanel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show schedule for coordinators WITHOUT booking buttons
+  if (isCoordinator) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6 mb-6">
+          <FileText size={24} className="mb-2 text-primary" />
+          <h3 className="font-semibold mb-2">Schema-vy för koordinatorer</h3>
+          <p className="text-sm text-neutral-secondary">
+            Som koordinator kan du se schemat här. För att hantera tidspass, gå till din
+            koordinatorpanel.
+          </p>
+          <Button variant="primary" onClick={() => navigate("/coordinator")} className="mt-4">
+            Gå till Koordinatorpanel
+          </Button>
+        </div>
+
+        {/* Show the schedule without booking buttons */}
+        <Card>
+          <h3 className="mb-4">Veckoschema</h3>
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousWeek}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft size={16} />
+              <span className="hidden sm:inline">Föregående vecka</span>
+              <span className="sm:hidden">Föreg.</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNextWeek}
+              className="flex items-center gap-2"
+            >
+              <span className="hidden sm:inline">Nästa vecka</span>
+              <span className="sm:hidden">Nästa</span>
+              <ChevronRight size={16} />
+            </Button>
+          </div>
+
+          <WeekView
+            timeSlots={weekViewSlots}
+            weekDates={weekDates}
+            onSlotClick={handleSlotClick}
+            selectedSlotId={selectedSlotId}
+          />
+        </Card>
+
+        {/* Show slot list without booking buttons */}
+        <div className="space-y-4">
+          <h3>Pass denna vecka</h3>
+          {availableSlots.length === 0 ? (
+            <Card>
+              <p className="text-center text-neutral-secondary py-8">Inga pass denna vecka</p>
+            </Card>
+          ) : (
+            availableSlots.map((slot) => {
+              let displayDate = new Date();
+
+              if (slot.specificDate) {
+                displayDate = new Date(slot.specificDate);
+              } else {
+                const targetDayIndex = dayToIndex[slot.dayOfWeek];
+                const foundDate = weekDates.find((d) => d.getDay() === targetDayIndex);
+                if (foundDate) {
+                  displayDate = foundDate;
+                }
+              }
+
+              return (
+                <Card key={slot.id} id={`slot-${slot.id}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h4 className="font-medium">
+                          {capitalize(displayDate.toLocaleDateString("sv-SE", { weekday: "long" }))}{" "}
+                          {formatDate(displayDate)}
+                        </h4>
+                        <Tag
+                          variant={getAvailabilityVariant(
+                            slot.availableSpots || 0,
+                            slot.maxStudents
+                          )}
+                        >
+                          {slot.availableSpots} {slot.availableSpots === 1 ? "plats" : "platser"}{" "}
+                          kvar
+                        </Tag>
+                      </div>
+
+                      <p className="text-sm text-neutral-secondary mb-3">
+                        {slot.startTime} - {slot.endTime}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {slot.subjects.map((subject, idx) => (
+                          <SubjectTag
+                            key={idx}
+                            name={typeof subject === "string" ? subject : subject.name}
+                            icon={typeof subject === "object" ? subject.icon : undefined}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // REGULAR VIEW: For parents and students (with booking buttons)
   return (
     <div className="space-y-6">
       {/* Week Calendar View */}
       <Card>
-        {/* Heading first */}
         <h3 className="mb-4">Välj ett pass</h3>
 
-        {/* Buttons below heading */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <Button
             variant="outline"
@@ -241,7 +412,7 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
         </div>
 
         <WeekView
-          timeSlots={timeSlots}
+          timeSlots={weekViewSlots}
           weekDates={weekDates}
           onSlotClick={handleSlotClick}
           selectedSlotId={selectedSlotId}
@@ -278,25 +449,21 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                   selectedSlotId === slot.id ? "ring-2 ring-primary" : ""
                 }`}
               >
-                {/* ✅ MOBILE LAYOUT: Stack vertically */}
+                {/* MOBILE LAYOUT */}
                 <div className="flex flex-col gap-4 lg:hidden">
-                  {/* Date */}
                   <h4 className="font-semibold text-lg">
                     {capitalize(displayDate.toLocaleDateString("sv-SE", { weekday: "long" }))}{" "}
                     {formatDate(displayDate)}
                   </h4>
 
-                  {/* Availability Badge */}
                   <Tag variant={getAvailabilityVariant(slot.availableSpots || 0, slot.maxStudents)}>
                     {slot.availableSpots} {slot.availableSpots === 1 ? "plats" : "platser"} kvar
                   </Tag>
 
-                  {/* Time */}
                   <p className="text-sm text-neutral-secondary">
                     {slot.startTime} - {slot.endTime}
                   </p>
 
-                  {/* Subjects */}
                   <div className="flex flex-wrap gap-2">
                     {slot.subjects.map((subject, idx) => (
                       <SubjectTag
@@ -307,7 +474,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                     ))}
                   </div>
 
-                  {/* Booking Button - Full Width */}
                   {isAuthenticated ? (
                     <div className="flex flex-col gap-2">
                       <Button
@@ -318,7 +484,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                       >
                         Boka pass
                       </Button>
-                      {/* Helper text if parent has no children */}
                       {user?.role === UserRole.Parent && !parentHasChildren() && (
                         <p className="text-xs text-error text-center">Lägg till barn först</p>
                       )}
@@ -335,7 +500,7 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                   )}
                 </div>
 
-                {/* ✅ DESKTOP LAYOUT: Side by side */}
+                {/* DESKTOP LAYOUT */}
                 <div className="hidden lg:flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -365,7 +530,6 @@ export const VenueSchedule: React.FC<VenueScheduleProps> = ({ venueId }) => {
                     </div>
                   </div>
 
-                  {/* Booking Button - Right Side */}
                   <div className="flex flex-col items-end gap-1">
                     {isAuthenticated ? (
                       <>
