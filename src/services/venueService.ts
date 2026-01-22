@@ -18,9 +18,23 @@ export const venueService = {
   getVenues: async (
     filters?: VenueFilterParams
   ): Promise<OperationResult<PaginatedResponse<Venue>>> => {
-    const response = await api.get<OperationResult<PaginatedResponse<Venue>>>("/venues", {
-      params: filters,
-    });
+    // Build URLSearchParams to properly serialize arrays for .NET
+    const params = new URLSearchParams();
+
+    if (filters) {
+      if (filters.city) params.append("city", filters.city);
+      if (filters.isActive !== undefined) params.append("isActive", filters.isActive.toString());
+      if (filters.pageNumber) params.append("pageNumber", filters.pageNumber.toString());
+      if (filters.pageSize) params.append("pageSize", filters.pageSize.toString());
+
+      // Add array params without brackets (repeat param name)
+      filters.subjectIds?.forEach((id) => params.append("subjectIds", id));
+      filters.daysOfWeek?.forEach((day) => params.append("daysOfWeek", day));
+    }
+
+    const response = await api.get<OperationResult<PaginatedResponse<Venue>>>(
+      `/venues?${params.toString()}`
+    );
     return response.data;
   },
 
