@@ -1,6 +1,6 @@
 // src/components/features/coordinator/TimeSlotsManager.tsx
 import React, { useState, useEffect } from "react";
-import { Card, Button, Tag } from "../../common";
+import { Card, Button, Tag, Spinner } from "../../common";
 import { CreateTimeSlotModal } from "./CreateTimeSlotModal";
 import { venueService, timeSlotService } from "@/services";
 import { TimeSlotSummary, WeekDay, WeekDayLabels, TimeSlotStatus } from "@/types";
@@ -67,7 +67,7 @@ export const TimeSlotsManager: React.FC = () => {
     }
   };
 
-  // ✅ Separate recurring and one-time slots
+  // Separate recurring and one-time slots
   const recurringSlots = timeSlots.filter((slot) => slot.isRecurring);
   const oneTimeSlots = timeSlots
     .filter((slot) => !slot.isRecurring)
@@ -102,7 +102,8 @@ export const TimeSlotsManager: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <Spinner size="lg" />
         <p className="text-neutral-secondary">Laddar tidspass...</p>
       </div>
     );

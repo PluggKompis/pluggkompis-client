@@ -1,79 +1,111 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
-import { Card } from "../../common";
+import { Card, Spinner } from "../../common";
 import { DashboardStats } from "./DashboardStats";
+import { SubjectCoverageChart } from "./SubjectCoverageChart";
+import { TodaysSessions } from "./TodaysSessions";
+import { coordinatorService } from "../../../services/coordinatorService";
+import type { CoordinatorDashboard } from "@/types";
 
 export const Overview: React.FC = () => {
+  const [dashboard, setDashboard] = useState<CoordinatorDashboard | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        const result = await coordinatorService.getDashboard();
+
+        if (result.isSuccess && result.data) {
+          setDashboard(result.data);
+        } else {
+          setError(result.errors?.[0] || "Kunde inte hämta översiktsdata");
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard:", err);
+        setError("Kunde inte hämta översiktsdata");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <Spinner size="lg" />
+        <p className="text-neutral-secondary">Laddar översikt...</p>
+      </div>
+    );
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <p className="text-error">{error || "Kunde inte ladda översiktsdata"}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="mb-6">Översikt</h2>
 
       {/* Stats Grid */}
-      <DashboardStats />
+      <DashboardStats
+        totalVolunteers={dashboard.totalVolunteers}
+        totalBookings={dashboard.totalBookingsThisWeek}
+        upcomingSessionsCount={dashboard.upcomingShifts.length}
+        unfilledShiftsCount={dashboard.unfilledShiftsCount}
+      />
+
+      {/* Subject Coverage Chart */}
+      <SubjectCoverageChart data={dashboard.subjectCoverage} />
 
       {/* Quick Info Cards */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Upcoming Sessions */}
-        <Card>
-          <h3 className="mb-4">Kommande pass idag</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-neutral-stroke">
-              <div>
-                <p className="font-semibold">16:00 - 18:00</p>
-                <p className="text-sm text-neutral-secondary">3 volontärer, 12 elever</p>
-              </div>
-              <span className="text-success font-semibold">Aktiv</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <div>
-                <p className="font-semibold">18:00 - 20:00</p>
-                <p className="text-sm text-neutral-secondary">2 volontärer, 8 elever</p>
-              </div>
-              <span className="text-neutral-secondary">Kommande</span>
-            </div>
-          </div>
-        </Card>
+        {/* Today's Sessions */}
+        <TodaysSessions shifts={dashboard.upcomingShifts} />
 
-        {/* Recent Activity */}
+        {/* Alerts */}
         <Card>
-          <h3 className="mb-4">Senaste aktivitet</h3>
-          <div className="space-y-3">
-            <div className="py-2 border-b border-neutral-stroke">
-              <p className="text-sm">
-                <span className="font-semibold">Anna Svensson</span> bokade ett pass
-              </p>
-              <p className="text-xs text-neutral-secondary">För 2 timmar sedan</p>
-            </div>
-            <div className="py-2 border-b border-neutral-stroke">
-              <p className="text-sm">
-                <span className="font-semibold">Erik Andersson</span> anmälde sig som volontär
-              </p>
-              <p className="text-xs text-neutral-secondary">För 5 timmar sedan</p>
-            </div>
-            <div className="py-2">
-              <p className="text-sm">
-                <span className="font-semibold">Maria Johansson</span> avbokade ett pass
-              </p>
-              <p className="text-xs text-neutral-secondary">Igår</p>
-            </div>
+          <h3 className="mb-4">Uppmärksamhet krävs</h3>
+          <div className="space-y-4">
+            {dashboard.unfilledShiftsCount > 0 && (
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: "#E8A93F15" }}
+                >
+                  <AlertCircle size={24} style={{ color: "#E8A93F" }} />
+                </div>
+                <div>
+                  <p className="font-medium">Ofyllda pass</p>
+                  <p className="text-sm text-neutral-secondary">
+                    {dashboard.unfilledShiftsCount} pass saknar volontärer de kommande 7 dagarna
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {dashboard.unfilledShiftsCount === 0 && (
+              <div className="text-center py-4">
+                <div
+                  className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3"
+                  style={{ backgroundColor: "#24A54F15" }}
+                >
+                  <AlertCircle size={24} style={{ color: "#24A54F" }} />
+                </div>
+                <p className="text-neutral-secondary">Allt ser bra ut! Inga varningar just nu.</p>
+              </div>
+            )}
           </div>
         </Card>
       </div>
-
-      {/* Alerts/Notices */}
-      <Card>
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-warning/10 rounded-full flex items-center justify-center flex-shrink-0">
-            <AlertCircle size={24} className="text-warning" />
-          </div>
-          <div>
-            <h3 className="mb-2">Uppmärksamhet krävs</h3>
-            <p className="text-neutral-secondary">
-              Du har 2 volontäransökningar som väntar på godkännande.
-            </p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 };

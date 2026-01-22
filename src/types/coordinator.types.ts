@@ -41,3 +41,34 @@ export interface GetShiftsParams {
   pageNumber?: number;
   pageSize?: number;
 }
+
+// Dashboard statistics for coordinator overview
+export interface CoordinatorDashboard {
+  totalBookingsThisWeek: number;
+  totalVolunteers: number;
+  unfilledShiftsCount: number;
+  subjectCoverage: SubjectCoverage[];
+  upcomingShifts: UpcomingShift[];
+  volunteerUtilization: VolunteerUtilization[];
+}
+
+export interface SubjectCoverage {
+  subjectName: string;
+  volunteersCount: number;
+}
+
+export interface UpcomingShift {
+  timeSlotId: string;
+  startUtc: string;
+  endUtc: string;
+  bookingsCount: number;
+  volunteersCount: number;
+  volunteerNames: string[];
+  subjectNames: string[];
+}
+
+export interface VolunteerUtilization {
+  volunteerId: string;
+  volunteerName: string;
+  hoursThisWeek: number;
+}
