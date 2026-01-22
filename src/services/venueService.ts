@@ -31,8 +31,8 @@ export const venueService = {
   },
 
   // Get my venue (coordinator only)
-  getMyVenue: async (): Promise<OperationResult<VenueDetail>> => {
-    const response = await api.get<OperationResult<VenueDetail>>("/venues/my-venue");
+  getMyVenue: async (): Promise<OperationResult<Venue>> => {
+    const response = await api.get<OperationResult<Venue>>("/venues/my-venue");
     return response.data;
   },
 

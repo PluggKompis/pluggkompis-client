@@ -22,7 +22,7 @@ export const VolunteerApplicationCard: React.FC<VolunteerApplicationCardProps> =
   const handleApprove = async () => {
     setIsApproving(true);
     try {
-      await onApprove(application.applicationId);
+      await onApprove(application.id);
     } finally {
       setIsApproving(false);
     }
@@ -35,7 +35,7 @@ export const VolunteerApplicationCard: React.FC<VolunteerApplicationCardProps> =
   const handleDeclineConfirm = async () => {
     setIsDeclining(true);
     try {
-      await onDecline(application.applicationId, declineReason || undefined);
+      await onDecline(application.id, declineReason || undefined);
     } finally {
       setIsDeclining(false);
       setShowDeclineInput(false);

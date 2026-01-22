@@ -20,6 +20,10 @@ export interface Venue {
   availableSubjects: Subject[]; // List of subject names
   availableDays: string[]; // List of days (e.g., ["Monday", "Tuesday"])
 
+  // Coordinates (optional until backend adds them)
+  latitude?: number;
+  longitude?: number;
+
   createdAt?: string;
   updatedAt?: string;
 }
@@ -156,6 +160,8 @@ export interface CreateVenueRequest {
   description: string;
   contactEmail: string;
   contactPhone: string;
+  latitude?: number;  
+  longitude?: number;
 }
 
 export interface UpdateVenueRequest {
@@ -167,6 +173,8 @@ export interface UpdateVenueRequest {
   contactEmail: string;
   contactPhone: string;
   isActive: boolean;
+  latitude?: number;  
+  longitude?: number;
 }
 
 // Filter params for venue search (matches VenueFilterParams from backend)
