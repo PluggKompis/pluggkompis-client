@@ -1,3 +1,4 @@
+import { TimeSlot, WeekDay } from "./venue.types";
 // Volunteer Profile DTOs and Request types
 
 // Backend GET response structure (nested subject)
@@ -48,6 +49,10 @@ export interface UpdateVolunteerProfileRequest {
   }>;
 }
 
+// ============================================
+// VOLUNTEER APPLICATIONS
+// ============================================
+
 // Shared enum for application status (used by both volunteers and coordinators)
 export enum ApplicationStatus {
   Pending = "Pending",
@@ -68,4 +73,95 @@ export interface VolunteerApplication {
   reviewedAt?: string;
   reviewedBy?: string;
   notes?: string; // Coordinator's notes/reason for declining
+}
+
+// ============================================
+// VOLUNTEER SHIFTS
+// ============================================
+
+export enum VolunteerShiftStatus {
+  Pending = "Pending",
+  Confirmed = "Confirmed",
+  Cancelled = "Cancelled",
+  Completed = "Completed",
+}
+
+export interface VolunteerShift {
+  id: string;
+  volunteerId: string;
+  timeSlotId: string;
+  timeSlot?: TimeSlot; // TimeSlot reference
+  shiftDate: string;
+  status: VolunteerShiftStatus;
+  hoursWorked?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VolunteerShiftDto {
+  id: string;
+  timeSlotId: string;
+  venueId: string;
+  venueName?: string;
+  isRecurring: boolean;
+  specificDate?: string; // "2026-01-20" format
+  dayOfWeek: WeekDay;
+  startTime: string; // "16:00:00"
+  endTime: string; // "18:00:00"
+  status: VolunteerShiftStatus;
+  isAttended: boolean;
+  notes?: string;
+  nextOccurrenceStartUtc?: string; // ISO datetime
+  nextOccurrenceEndUtc?: string; // ISO datetime
+  durationHours?: number;
+}
+
+export interface CreateShiftSignupRequest {
+  timeSlotId: string;
+  notes?: string;
+}
+
+export interface VolunteerShift {
+  id: string;
+  volunteerId: string;
+  timeSlotId: string;
+  timeSlot?: TimeSlot;
+  shiftDate: string;
+  status: VolunteerShiftStatus;
+  hoursWorked?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
+// ATTENDANCE
+// ============================================
+
+export interface Attendance {
+  id: string;
+  bookingId?: string;
+  volunteerShiftId?: string;
+  attendanceDate: string;
+  isPresent: boolean;
+  notes?: string;
+  markedAt: string;
+}
+
+// ============================================
+// AVAILABLE SHIFTS
+// ============================================
+export interface AvailableShiftDto {
+  timeSlotId: string;
+  venueId: string;
+  venueName: string;
+  venueAddress?: string;
+  venueCity?: string;
+  dayOfWeek: WeekDay;
+  startTime: string; // "16:00:00"
+  endTime: string; // "18:00:00"
+  isRecurring: boolean;
+  specificDate?: string; // "2026-01-21" (DateOnly from backend)
+  subjects: string[];
+  volunteersNeeded?: number;
+  volunteersSignedUp?: number;
 }

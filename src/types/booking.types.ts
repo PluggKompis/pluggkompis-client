@@ -1,4 +1,4 @@
-import { TimeSlot, TimeSlotSummary } from "./venue.types";
+import { TimeSlotSummary } from "./venue.types";
 
 export interface Booking {
   id: string;
@@ -34,33 +34,4 @@ export enum BookingStatus {
   Confirmed = "Confirmed",
   Cancelled = "Cancelled",
   Attended = "Attended",
-}
-
-export interface VolunteerShift {
-  id: string;
-  volunteerId: string;
-  timeSlotId: string;
-  timeSlot?: TimeSlot;
-  shiftDate: string;
-  status: VolunteerShiftStatus;
-  hoursWorked?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export enum VolunteerShiftStatus {
-  Pending = "Pending",
-  Confirmed = "Confirmed",
-  Cancelled = "Cancelled",
-  Completed = "Completed",
-}
-
-export interface Attendance {
-  id: string;
-  bookingId?: string;
-  volunteerShiftId?: string;
-  attendanceDate: string;
-  isPresent: boolean;
-  notes?: string;
-  markedAt: string;
 }
