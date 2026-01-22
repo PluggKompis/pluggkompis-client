@@ -7,18 +7,15 @@ import {
   DeclineVolunteerRequest,
   MarkAttendanceRequest,
   CoordinatorShift,
-  CoordinatorShiftsFilters,
+  GetShiftsParams,
 } from "@/types";
-
 
 export const coordinatorService = {
   // Get all pending volunteer applications for my venue
-  getPendingApplications: async (): Promise<
-    OperationResult<CoordinatorVolunteerApplication[]>
-  > => {
-    const response = await api.get<
-      OperationResult<CoordinatorVolunteerApplication[]>
-    >("/coordinator/applications");
+  getPendingApplications: async (): Promise<OperationResult<CoordinatorVolunteerApplication[]>> => {
+    const response = await api.get<OperationResult<CoordinatorVolunteerApplication[]>>(
+      "/coordinator/applications"
+    );
 
     return response.data;
   },
@@ -50,7 +47,7 @@ export const coordinatorService = {
 
   // Get shifts with filters
   getShifts: async (
-    filters?: CoordinatorShiftsFilters
+    filters?: GetShiftsParams
   ): Promise<OperationResult<PaginatedResponse<CoordinatorShift>>> => {
     const response = await api.get<OperationResult<PaginatedResponse<CoordinatorShift>>>(
       "/coordinator/shifts",

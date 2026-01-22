@@ -15,12 +15,14 @@ const registerSchema = z
     email: z.string().email("Ogiltig e-postadress"),
     password: z.string().min(8, "Lösenord måste vara minst 8 tecken"),
     confirmPassword: z.string(),
-    role: z.string().refine((val) => ["0", "1", "2", "3"].includes(val), {
-      message: "Välj en giltig roll",
-    }),
+    role: z
+      .string()
+      .refine((val) => ["Student", "Parent", "Volunteer", "Coordinator"].includes(val), {
+        message: "Välj en giltig roll",
+      }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Lösenorden matkar inte",
+    message: "Lösenorden matchar inte",
     path: ["confirmPassword"],
   });
 
@@ -53,9 +55,8 @@ export const RegisterPage: React.FC = () => {
       const dashboardRoute = getDashboardRoute(user.role);
       console.log("🎯 Dashboard route:", dashboardRoute);
       navigate(dashboardRoute);
-      // No setState here!
     }
-  }, [registerComplete, user, navigate]); // Remove getDashboardRoute from deps
+  }, [registerComplete, user, navigate]);
 
   const {
     register,
@@ -64,7 +65,7 @@ export const RegisterPage: React.FC = () => {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      role: String(UserRole.Student),
+      role: UserRole.Student,
     },
   });
 
@@ -73,15 +74,15 @@ export const RegisterPage: React.FC = () => {
       setIsLoading(true);
       setApiError("");
 
-      const roleNumber = parseInt(data.role, 10) as UserRole;
-      console.log("📤 Sending role number:", roleNumber, "Type:", typeof roleNumber);
+      // Send the string role
+      console.log("📤 Sending role:", data.role, "Type:", typeof data.role);
 
       await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        role: roleNumber,
+        role: data.role as UserRole,
       });
 
       console.log("✅ Registration complete, user should be updated");
@@ -95,19 +96,23 @@ export const RegisterPage: React.FC = () => {
   };
 
   const roles = [
-    { value: String(UserRole.Student), label: "Elev", description: "Jag vill få läxhjälp" },
     {
-      value: String(UserRole.Parent),
+      value: UserRole.Student,
+      label: "Elev",
+      description: "Jag vill få läxhjälp",
+    },
+    {
+      value: UserRole.Parent,
       label: "Förälder",
       description: "Jag vill boka hjälp för mitt barn",
     },
     {
-      value: String(UserRole.Volunteer),
+      value: UserRole.Volunteer,
       label: "Volontär",
       description: "Jag vill hjälpa andra med läxor",
     },
     {
-      value: String(UserRole.Coordinator),
+      value: UserRole.Coordinator,
       label: "Koordinator",
       description: "Jag vill hantera en plats",
     },
@@ -169,7 +174,7 @@ export const RegisterPage: React.FC = () => {
             <Input
               label="Lösenord"
               type={showPassword ? "text" : "password"}
-              placeholder="Minst 6 tecken"
+              placeholder="Minst 8 tecken"
               error={errors.password?.message}
               {...register("password")}
             />
@@ -211,7 +216,7 @@ export const RegisterPage: React.FC = () => {
                 >
                   <input
                     type="radio"
-                    value={roleOption.value} // String value "0", "1", "2", "3"
+                    value={roleOption.value}
                     {...register("role")}
                     className="w-4 h-4 text-primary"
                   />

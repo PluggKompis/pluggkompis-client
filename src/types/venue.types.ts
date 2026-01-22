@@ -122,7 +122,7 @@ export interface OpeningHours {
 
 // WeekDay enum
 export enum WeekDay {
-  Sunday = "Sunday",   
+  Sunday = "Sunday",
   Monday = "Monday",
   Tuesday = "Tuesday",
   Wednesday = "Wednesday",
@@ -133,7 +133,7 @@ export enum WeekDay {
 
 // Swedish labels for display
 export const WeekDayLabels: Record<WeekDay, string> = {
-  [WeekDay.Sunday]: "Söndag",  
+  [WeekDay.Sunday]: "Söndag",
   [WeekDay.Monday]: "Måndag",
   [WeekDay.Tuesday]: "Tisdag",
   [WeekDay.Wednesday]: "Onsdag",
@@ -161,7 +161,7 @@ export interface CreateVenueRequest {
   description: string;
   contactEmail: string;
   contactPhone: string;
-  latitude?: number;  
+  latitude?: number;
   longitude?: number;
 }
 
@@ -174,7 +174,7 @@ export interface UpdateVenueRequest {
   contactEmail: string;
   contactPhone: string;
   isActive: boolean;
-  latitude?: number;  
+  latitude?: number;
   longitude?: number;
 }
 

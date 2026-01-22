@@ -19,9 +19,9 @@ export interface CoordinatorShift {
   venueName: string;
   volunteerId: string;
   volunteerName: string;
-  occurrenceStartUtc: string;
-  occurrenceEndUtc: string;
-  status: string;
+  occurrenceStartUtc: string; // ISO datetime
+  occurrenceEndUtc: string; // ISO datetime
+  status: string; // "Pending" | "Confirmed" | "Cancelled" | "Completed"
   isAttended: boolean;
   notes?: string;
 }
@@ -33,7 +33,7 @@ export interface MarkAttendanceRequest {
 }
 
 // Filters for coordinator shifts query
-export interface CoordinatorShiftsFilters {
+export interface GetShiftsParams {
   startUtc?: string;
   endUtcExclusive?: string;
   isAttended?: boolean;

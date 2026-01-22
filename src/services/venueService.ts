@@ -81,9 +81,9 @@ export const venueService = {
 
   // Get volunteers for a venue
   getVenueVolunteers: async (venueId: string): Promise<OperationResult<VolunteerProfileDto[]>> => {
-  const response = await api.get<OperationResult<VolunteerProfileDto[]>>(
-    `/venues/${venueId}/volunteers`
-  );
-  return response.data;
-},
+    const response = await api.get<OperationResult<VolunteerProfileDto[]>>(
+      `/venues/${venueId}/volunteers`
+    );
+    return response.data;
+  },
 };

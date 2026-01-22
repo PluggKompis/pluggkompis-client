@@ -184,7 +184,7 @@ export const VenueInfo: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-6 text-neutral-secondary text-sm">
-                <p className="mb-1">Inga öppettider än</p>
+                <p className="mb-1">Inga dagar med läxhjälp än</p>
                 <p className="text-xs">Dagar läggs till automatiskt när du skapar tidspass</p>
               </div>
             )}
