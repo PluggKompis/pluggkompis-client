@@ -20,7 +20,7 @@ export interface Venue {
   availableSubjects: Subject[]; // List of subject names
   availableDays: string[]; // List of days (e.g., ["Monday", "Tuesday"])
 
-  // Coordinates (optional until backend adds them)
+  // Coordinates for map display
   latitude?: number;
   longitude?: number;
 
@@ -50,6 +50,10 @@ export interface VenueDetail {
 
   // Optional: For coordinators viewing their own venue
   pendingApplications?: VolunteerApplication[];
+
+  // Coordinates for map display
+  latitude?: number;
+  longitude?: number;
 
   createdAt?: string;
   updatedAt?: string;

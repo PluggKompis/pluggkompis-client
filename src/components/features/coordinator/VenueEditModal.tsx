@@ -243,7 +243,7 @@ export const VenueEditModal: React.FC<VenueEditModalProps> = ({ venue, onClose, 
             </div>
           </div>
 
-          {/* Coordinates - NEW SECTION */}
+          {/* Coordinates */}
           <div className="space-y-4">
             <h3 className="font-semibold">Koordinater</h3>
             <p className="text-sm text-neutral-secondary">
@@ -255,8 +255,8 @@ export const VenueEditModal: React.FC<VenueEditModalProps> = ({ venue, onClose, 
                 <label className="block text-sm font-medium mb-2">Latitud (Latitude)</label>
                 <Input
                   name="latitude"
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal" // ⬅️ Gives numeric keyboard on mobile
                   value={formData.latitude}
                   onChange={handleChange}
                   placeholder="57.708870"
@@ -267,8 +267,8 @@ export const VenueEditModal: React.FC<VenueEditModalProps> = ({ venue, onClose, 
                 <label className="block text-sm font-medium mb-2">Longitud (Longitude)</label>
                 <Input
                   name="longitude"
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal" // ⬅️ Gives numeric keyboard on mobile
                   value={formData.longitude}
                   onChange={handleChange}
                   placeholder="11.974560"
