@@ -10,6 +10,7 @@ import {
   TimeSlotSummary,
   PaginatedResponse,
   VolunteerApplication,
+  VolunteerProfileDto,
 } from "@/types";
 
 export const venueService = {
@@ -77,4 +78,12 @@ export const venueService = {
     const response = await api.post<OperationResult<VolunteerApplication>>("/venues/apply", data);
     return response.data;
   },
+
+  // Get volunteers for a venue
+  getVenueVolunteers: async (venueId: string): Promise<OperationResult<VolunteerProfileDto[]>> => {
+  const response = await api.get<OperationResult<VolunteerProfileDto[]>>(
+    `/venues/${venueId}/volunteers`
+  );
+  return response.data;
+},
 };
