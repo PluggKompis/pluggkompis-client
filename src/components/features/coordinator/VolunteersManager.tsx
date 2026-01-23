@@ -104,8 +104,9 @@ export const VolunteersManager: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
         <Spinner size="lg" />
+        <p className="text-neutral-secondary">Laddar volontärer...</p>
       </div>
     );
   }
@@ -127,6 +128,15 @@ export const VolunteersManager: React.FC = () => {
       </div>
     );
   }
+
+  console.log(
+    "Pending application IDs:",
+    pendingApplications.map((a) => a.applicationId)
+  );
+  console.log(
+    "Active volunteer IDs:",
+    filteredVolunteers.map((v) => v.volunteerId)
+  );
 
   return (
     <div className="space-y-6">
@@ -176,7 +186,7 @@ export const VolunteersManager: React.FC = () => {
             {pendingApplications.length > 0 ? (
               pendingApplications.map((app) => (
                 <VolunteerApplicationCard
-                  key={app.id}
+                  key={app.applicationId}
                   application={app}
                   onApprove={handleApprove}
                   onDecline={handleDecline}

@@ -30,6 +30,17 @@ export const VenueFilters: React.FC<VenueFiltersProps> = ({
 }) => {
   const [isSubjectDropdownOpen, setIsSubjectDropdownOpen] = useState(false);
 
+  // Define day order starting with Monday
+  const dayOrder: WeekDay[] = [
+    WeekDay.Monday,
+    WeekDay.Tuesday,
+    WeekDay.Wednesday,
+    WeekDay.Thursday,
+    WeekDay.Friday,
+    WeekDay.Saturday,
+    WeekDay.Sunday,
+  ];
+
   const handleReset = () => {
     onCityChange("");
     onSubjectIdsChange([]);
@@ -180,18 +191,18 @@ export const VenueFilters: React.FC<VenueFiltersProps> = ({
             <div>
               <label className="block text-sm font-medium text-neutral-text mb-2">Dagar</label>
               <div className="space-y-2">
-                {Object.entries(WeekDayLabels).map(([key, label]) => (
+                {dayOrder.map((day) => (
                   <label
-                    key={key}
+                    key={day}
                     className="flex items-center gap-2 cursor-pointer hover:bg-neutral-bg rounded px-2 py-1"
                   >
                     <input
                       type="checkbox"
-                      checked={selectedDays.includes(key as WeekDay)}
-                      onChange={() => handleDayToggle(key as WeekDay)}
+                      checked={selectedDays.includes(day)}
+                      onChange={() => handleDayToggle(day)}
                       className="w-4 h-4 text-primary rounded"
                     />
-                    <span className="text-sm">{label}</span>
+                    <span className="text-sm">{WeekDayLabels[day]}</span>
                   </label>
                 ))}
               </div>

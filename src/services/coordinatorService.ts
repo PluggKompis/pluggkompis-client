@@ -8,6 +8,7 @@ import {
   MarkAttendanceRequest,
   CoordinatorShift,
   GetShiftsParams,
+  CoordinatorDashboard,
 } from "@/types";
 
 export const coordinatorService = {
@@ -65,6 +66,12 @@ export const coordinatorService = {
       `/coordinator/shifts/${shiftId}/attendance`,
       data
     );
+    return response.data;
+  },
+
+  // Get coordinator dashboard data
+  getDashboard: async (): Promise<OperationResult<CoordinatorDashboard>> => {
+    const response = await api.get<OperationResult<CoordinatorDashboard>>("/coordinator/dashboard");
     return response.data;
   },
 };

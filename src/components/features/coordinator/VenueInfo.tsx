@@ -2,30 +2,44 @@ import React, { useState, useEffect } from "react";
 import { MapPin, Mail, Phone, AlertCircle, Calendar, BookOpen } from "lucide-react";
 import { Card, Button, Tag, Spinner, SubjectTag } from "../../common";
 import { venueService } from "@/services";
-import { Venue } from "@/types";
+import { Venue, TimeSlotSummary } from "@/types";
 import { VenueEditModal } from "./VenueEditModal";
 
 export const VenueInfo: React.FC = () => {
   const [venue, setVenue] = useState<Venue | null>(null);
+  const [timeslots, setTimeslots] = useState<TimeSlotSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchVenue();
+    fetchVenueData();
   }, []);
 
-  const fetchVenue = async () => {
+  const fetchVenueData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const result = await venueService.getMyVenue();
+      // Fetch venue
+      const venueResult = await venueService.getMyVenue();
 
-      if (result.isSuccess && result.data) {
-        setVenue(result.data);
-      } else {
-        setError(result.errors?.[0] || "Kunde inte hitta din plats");
+      if (!venueResult.isSuccess || !venueResult.data) {
+        setError(venueResult.errors?.[0] || "Kunde inte hitta din plats");
+        return;
+      }
+
+      setVenue(venueResult.data);
+
+      // Fetch timeslots for this venue
+      try {
+        const timeslotsResult = await venueService.getVenueTimeSlots(venueResult.data.id);
+        if (timeslotsResult.isSuccess && timeslotsResult.data) {
+          setTimeslots(timeslotsResult.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch timeslots:", err);
+        // Don't fail the whole component if timeslots fail
       }
     } catch (err) {
       console.error("Failed to fetch venue:", err);
@@ -37,14 +51,63 @@ export const VenueInfo: React.FC = () => {
 
   const handleModalSuccess = () => {
     setIsEditModalOpen(false);
-    fetchVenue();
+    fetchVenueData();
   };
+
+  // Extract unique subjects from timeslots
+  const getAvailableSubjects = () => {
+    const subjectsMap = new Map();
+
+    timeslots.forEach((slot) => {
+      if (slot.subjects && slot.subjects.length > 0) {
+        slot.subjects.forEach((subject) => {
+          if (!subjectsMap.has(subject.id)) {
+            subjectsMap.set(subject.id, subject);
+          }
+        });
+      }
+    });
+
+    return Array.from(subjectsMap.values());
+  };
+
+  // Extract unique days from timeslots
+  const getAvailableDays = () => {
+    const daysSet = new Set<string>();
+    const dayNamesEng = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const dayNamesSwe = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
+
+    timeslots.forEach((slot) => {
+      // dayOfWeek in TimeSlotSummary is a string like "Monday"
+      const engIndex = dayNamesEng.indexOf(slot.dayOfWeek);
+      if (engIndex !== -1) {
+        daysSet.add(dayNamesSwe[engIndex]);
+      }
+    });
+
+    // Sort days by weekday order
+    return Array.from(daysSet).sort((a, b) => {
+      return dayNamesSwe.indexOf(a) - dayNamesSwe.indexOf(b);
+    });
+  };
+
+  const availableSubjects = getAvailableSubjects();
+  const availableDays = getAvailableDays();
 
   // Loading state
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
         <Spinner size="lg" />
+        <p className="text-neutral-secondary">Laddar plats...</p>
       </div>
     );
   }
@@ -150,9 +213,9 @@ export const VenueInfo: React.FC = () => {
               <BookOpen size={20} className="text-neutral-secondary" />
             </div>
 
-            {venue.availableSubjects && venue.availableSubjects.length > 0 ? (
+            {availableSubjects.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {venue.availableSubjects.map((subject) => (
+                {availableSubjects.map((subject) => (
                   <SubjectTag key={subject.id} name={subject.name} icon={subject.icon} />
                 ))}
               </div>
@@ -168,15 +231,15 @@ export const VenueInfo: React.FC = () => {
           <Card>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="mb-1">Öppna dagar</h3>
+                <h3 className="mb-1">Läxhjälpsdagar</h3>
                 <p className="text-sm text-neutral-secondary">Dagar när läxhjälp erbjuds</p>
               </div>
               <Calendar size={20} className="text-neutral-secondary" />
             </div>
 
-            {venue.availableDays && venue.availableDays.length > 0 ? (
+            {availableDays.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {venue.availableDays.map((day) => (
+                {availableDays.map((day) => (
                   <Tag key={day} variant="default">
                     {day}
                   </Tag>
@@ -229,7 +292,7 @@ export const VenueInfo: React.FC = () => {
             </Card>
           )}
 
-          {/* Quick Stats Card (optional - could add more info here) */}
+          {/* Quick Stats Card */}
           <Card>
             <h3 className="mb-4">Snabbfakta</h3>
             <div className="space-y-3">
@@ -240,6 +303,10 @@ export const VenueInfo: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-neutral-secondary">Stad</span>
                 <span className="text-sm font-semibold">{venue.city}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-secondary">Antal pass</span>
+                <span className="text-sm font-semibold">{timeslots.length}</span>
               </div>
             </div>
           </Card>
