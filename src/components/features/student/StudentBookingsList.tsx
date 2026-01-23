@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, AlertCircle } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Calendar, AlertCircle, CheckCircle } from "lucide-react";
 import { EmptyState, Spinner } from "@/components/common";
 import { BookingCard } from "@/components/features/bookings/BookingCard";
 import { Booking, BookingStatus } from "@/types";
@@ -13,13 +13,11 @@ export const StudentBookingsList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>("upcoming");
 
-  // Fetch bookings on mount
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  // ✅ NEW: Success message state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch all bookings for the student
-  const fetchBookings = async () => {
+  // ✅ FIX: Wrapped in useCallback to satisfy linter
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -37,24 +35,26 @@ export const StudentBookingsList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Filter bookings by upcoming or past
+  // Fetch bookings on mount
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
   const filterBookings = (bookings: Booking[], filter: FilterTab): Booking[] => {
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Start of today
+    now.setHours(0, 0, 0, 0);
 
     if (filter === "upcoming") {
-      // Upcoming: booking date >= today AND status is Confirmed
       return bookings
         .filter((b) => {
           const bookingDate = new Date(b.bookingDate);
           bookingDate.setHours(0, 0, 0, 0);
           return bookingDate >= now && b.status === BookingStatus.Confirmed;
         })
-        .sort((a, b) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime()); // Soonest first
+        .sort((a, b) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime());
     } else {
-      // Past: booking date < today OR status is Cancelled/Attended
       return bookings
         .filter((b) => {
           const bookingDate = new Date(b.bookingDate);
@@ -65,20 +65,21 @@ export const StudentBookingsList: React.FC = () => {
             b.status === BookingStatus.Attended
           );
         })
-        .sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()); // Newest first
+        .sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
     }
   };
 
-  // Handle successful cancellation
+  // ✅ NEW: Sets success message and auto-hides it
   const handleCancelSuccess = () => {
-    fetchBookings(); // Refresh the list
+    fetchBookings();
+    setSuccessMessage("Bokningen har avbokats.");
+    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const filteredBookings = filterBookings(bookings, activeFilter);
   const upcomingCount = filterBookings(bookings, "upcoming").length;
   const pastCount = filterBookings(bookings, "past").length;
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -87,7 +88,6 @@ export const StudentBookingsList: React.FC = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="bg-error/10 border border-error rounded-lg p-4">
@@ -124,6 +124,14 @@ export const StudentBookingsList: React.FC = () => {
           Tidigare {pastCount > 0 && `(${pastCount})`}
         </button>
       </div>
+
+      {/* ✅ NEW: Success Toast Notification */}
+      {successMessage && (
+        <div className="mt-4 p-4 bg-success/10 border border-success rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle size={20} className="text-success flex-shrink-0 mt-0.5" />
+          <p className="text-success font-medium">{successMessage}</p>
+        </div>
+      )}
 
       {/* Bookings List */}
       <div className="mt-6">
