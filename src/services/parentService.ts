@@ -26,6 +26,12 @@ export const parentService = {
   // Delete a child
   deleteChild: async (childId: string): Promise<OperationResult<void>> => {
     const response = await api.delete<OperationResult<void>>(`/children/${childId}`);
+
+    // Manually return success if status is 204
+    if (response.status === 204) {
+      return { isSuccess: true };
+    }
+
     return response.data;
   },
 };

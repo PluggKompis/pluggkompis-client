@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Button } from "@/components/common";
+import { ConfirmationModal } from "@/components/common/ConfirmationModal";
 import { User, Edit2, Trash2, Calendar } from "lucide-react";
 import { Child } from "@/types";
 
@@ -14,23 +15,15 @@ export const ChildCard: React.FC<ChildCardProps> = ({ child, onEdit, onDelete })
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Navigate to venue list to book a session for this child
   const handleBookSession = () => {
     navigate("/venues", { state: { selectedChildId: child.id } });
   };
 
-  // Show confirmation dialog before deleting
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  // Confirm and execute deletion
   const handleConfirmDelete = () => {
     onDelete(child.id);
     setShowDeleteConfirm(false);
   };
 
-  // Calculate age from birth year
   const currentYear = new Date().getFullYear();
   const age = currentYear - child.birthYear;
 
@@ -38,7 +31,6 @@ export const ChildCard: React.FC<ChildCardProps> = ({ child, onEdit, onDelete })
     <>
       <Card className="hover:shadow-md transition-shadow">
         <div className="flex flex-col gap-4">
-          {/* Header with Avatar */}
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <User size={24} className="text-primary" />
@@ -51,7 +43,6 @@ export const ChildCard: React.FC<ChildCardProps> = ({ child, onEdit, onDelete })
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col gap-2">
             <Button
               variant="primary"
@@ -75,8 +66,8 @@ export const ChildCard: React.FC<ChildCardProps> = ({ child, onEdit, onDelete })
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleDeleteClick}
-                className="flex-1 flex items-center justify-center gap-2 text-error hover:text-error hover:bg-error/10"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex-1 flex items-center justify-center gap-2 text-error hover:text-error hover:bg-error/10 border-neutral-stroke hover:border-error"
               >
                 <Trash2 size={14} />
                 Ta bort
@@ -86,30 +77,16 @@ export const ChildCard: React.FC<ChildCardProps> = ({ child, onEdit, onDelete })
         </div>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-2">Bekräfta borttagning</h3>
-            <p className="text-neutral-secondary mb-6">
-              Är du säker på att du vill ta bort {child.firstName}? Detta kommer även ta bort alla
-              bokningar för detta barn.
-            </p>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                Avbryt
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleConfirmDelete}
-                className="bg-error hover:bg-error/90"
-              >
-                Ta bort
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      {/* Reusable Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleConfirmDelete}
+        title="Ta bort barn"
+        message={`Är du säker på att du vill ta bort ${child.firstName}? Detta går inte om barnet har aktiva bokningar.`}
+        confirmLabel="Ta bort"
+        isDestructive={true}
+      />
     </>
   );
 };
