@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, MapPin } from "lucide-react"; // Added MapPin icon
 import { Card, Button, Input, Spinner } from "../../common";
 import { VolunteerApplicationCard } from "./VolunteerApplicationCard";
 import { ActiveVolunteerCard } from "@/components/features/coordinator/ActiveVolunteerCard";
@@ -11,6 +11,7 @@ export const VolunteersManager: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasVenue, setHasVenue] = useState(true); // NEW: Track if venue exists
 
   // Data states
   const [pendingApplications, setPendingApplications] = useState<CoordinatorVolunteerApplication[]>(
@@ -28,22 +29,24 @@ export const VolunteersManager: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch coordinator's venue first (just to get the ID)
+      // Fetch coordinator's venue first
       const venueResult = await venueService.getMyVenue();
       console.log("🔍 Venue result:", venueResult);
 
+      // FIX: Handle "No Venue" gracefully instead of showing an error
       if (!venueResult.isSuccess || !venueResult.data) {
-        setError("Kunde inte hitta din plats. Se till att du har skapat en plats först.");
+        setHasVenue(false); // Mark that we don't have a venue
         setLoading(false);
-        return;
+        return; // Stop here, don't try to fetch volunteers
       }
 
+      // If we have a venue, ensure this is true
+      setHasVenue(true);
       const venueId = venueResult.data.id;
 
-      // Now fetch the volunteers using dedicated endpoint
+      // Now fetch the volunteers
       const volunteersResult = await venueService.getVenueVolunteers(venueId);
       if (volunteersResult.isSuccess && volunteersResult.data) {
-        console.log("🔍 Volunteers:", volunteersResult.data);
         setActiveVolunteers(volunteersResult.data);
       }
 
@@ -67,7 +70,6 @@ export const VolunteersManager: React.FC = () => {
       });
 
       if (result.isSuccess) {
-        // Refresh data to show updated lists
         await fetchData();
       } else {
         alert(result.errors?.[0] || "Kunde inte godkänna ansökan");
@@ -85,7 +87,6 @@ export const VolunteersManager: React.FC = () => {
       });
 
       if (result.isSuccess) {
-        // Refresh data to show updated lists
         await fetchData();
       } else {
         alert(result.errors?.[0] || "Kunde inte avslå ansökan");
@@ -111,7 +112,27 @@ export const VolunteersManager: React.FC = () => {
     );
   }
 
-  // Error state
+  // NEW: "No Venue" State (Friendly message instead of Red Error)
+  if (!hasVenue) {
+    return (
+      <Card>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <MapPin size={32} className="text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Du har inte skapat någon plats än</h3>
+          <p className="text-neutral-secondary max-w-md mb-6">
+            För att kunna ta emot volontärer måste du först skapa en profil för din läxhjälpsplats.
+          </p>
+          <p className="text-sm font-medium text-primary bg-primary/5 px-4 py-2 rounded-lg">
+            Gå till fliken "Min Plats" för att komma igång!
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  // Generic Error state (only for actual errors now)
   if (error) {
     return (
       <div className="bg-error/10 border border-error rounded-lg p-6">
@@ -129,15 +150,7 @@ export const VolunteersManager: React.FC = () => {
     );
   }
 
-  console.log(
-    "Pending application IDs:",
-    pendingApplications.map((a) => a.applicationId)
-  );
-  console.log(
-    "Active volunteer IDs:",
-    filteredVolunteers.map((v) => v.volunteerId)
-  );
-
+  // ... rest of your render logic (Search & Tabs) ...
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
