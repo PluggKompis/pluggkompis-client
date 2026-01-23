@@ -1,4 +1,3 @@
-// src/components/features/coordinator/CreateTimeSlotModal.tsx
 import React, { useState, useEffect } from "react";
 import { X, AlertCircle, Clock, Users, Calendar } from "lucide-react";
 import { Button, Input } from "../../common";
@@ -23,6 +22,8 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     maxStudents: string;
     isRecurring: boolean;
     specificDate: string;
+    recurringStartDate: string;
+    recurringEndDate: string;
     subjectIds: string[];
   }>({
     dayOfWeek: WeekDay.Monday,
@@ -31,6 +32,8 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     maxStudents: "10",
     isRecurring: true,
     specificDate: "",
+    recurringStartDate: "",
+    recurringEndDate: "",
     subjectIds: [],
   });
 
@@ -57,6 +60,30 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
       setLoadingSubjects(false);
     }
   };
+
+  // --- Auto-sync DayOfWeek when Specific Date changes ---
+  // This prevents sending "Monday" when the user picks a "Wednesday" date
+  useEffect(() => {
+    if (!formData.isRecurring && formData.specificDate) {
+      const date = new Date(formData.specificDate);
+      const jsDay = date.getDay(); // 0 = Sunday, 1 = Monday...
+
+      // Map JS Day to your WeekDay Enum
+      const dayMap: Record<number, WeekDay> = {
+        1: WeekDay.Monday,
+        2: WeekDay.Tuesday,
+        3: WeekDay.Wednesday,
+        4: WeekDay.Thursday,
+        5: WeekDay.Friday,
+        6: WeekDay.Saturday,
+        0: WeekDay.Sunday,
+      };
+
+      if (dayMap[jsDay]) {
+        setFormData((prev) => ({ ...prev, dayOfWeek: dayMap[jsDay] }));
+      }
+    }
+  }, [formData.specificDate, formData.isRecurring]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -106,9 +133,21 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
       return;
     }
 
-    if (!formData.isRecurring && !formData.specificDate) {
-      setError("Välj ett specifikt datum för engångspass");
-      return;
+    // --- Recurring Date Validation ---
+    if (formData.isRecurring) {
+      if (!formData.recurringStartDate) {
+        setError("Du måste välja ett startdatum för det återkommande passet");
+        return;
+      }
+      if (formData.recurringEndDate && formData.recurringEndDate < formData.recurringStartDate) {
+        setError("Slutdatum kan inte vara före startdatum");
+        return;
+      }
+    } else {
+      if (!formData.specificDate) {
+        setError("Välj ett specifikt datum för engångspass");
+        return;
+      }
     }
 
     try {
@@ -117,11 +156,13 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
       const requestData: CreateTimeSlotRequest = {
         venueId: venueId,
         dayOfWeek: formData.dayOfWeek,
-        startTime: `${formData.startTime}:00`, // Convert "16:00" to "16:00:00"
+        startTime: `${formData.startTime}:00`,
         endTime: `${formData.endTime}:00`,
         maxStudents,
         isRecurring: formData.isRecurring,
         specificDate: formData.isRecurring ? undefined : formData.specificDate,
+        recurringStartDate: formData.isRecurring ? formData.recurringStartDate : undefined,
+        recurringEndDate: formData.isRecurring ? formData.recurringEndDate || undefined : undefined,
         subjectIds: formData.subjectIds,
       };
 
@@ -129,8 +170,6 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
 
       if (result.isSuccess) {
         setShowSuccess(true);
-
-        // Close modal after 2 seconds
         setTimeout(() => {
           onSuccess();
         }, 2000);
@@ -149,7 +188,7 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-neutral-stroke p-6 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-neutral-stroke p-6 flex items-center justify-between z-10">
           <h2 className="text-xl font-bold">Skapa nytt tidspass</h2>
           <button
             onClick={onClose}
@@ -165,17 +204,6 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
           {/* Success Message */}
           {showSuccess && (
             <div className="p-4 bg-success/10 border border-success rounded-lg flex items-start gap-3">
-              <svg
-                className="w-5 h-5 text-success flex-shrink-0 mt-0.5"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M5 13l4 4L19 7" />
-              </svg>
               <p className="text-success font-medium">Tidspasset har skapats!</p>
             </div>
           )}
@@ -188,7 +216,7 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
             </div>
           )}
 
-          {/* Recurring or One-time */}
+          {/* Type Toggle */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Calendar size={20} className="text-primary" />
@@ -224,33 +252,71 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
             </div>
           </div>
 
-          {/* Day Selection */}
+          {/* Date & Day Selection */}
           <div className="space-y-4">
-            <h3 className="font-semibold">{formData.isRecurring ? "Veckodag" : "Datum"}</h3>
+            <h3 className="font-semibold">När?</h3>
 
             {formData.isRecurring ? (
-              <select
-                name="dayOfWeek"
-                value={formData.dayOfWeek}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-neutral-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                required
-              >
-                {Object.entries(WeekDayLabels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-4">
+                {/* 1. Weekday (Recurring) */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Veckodag</label>
+                  <select
+                    name="dayOfWeek"
+                    value={formData.dayOfWeek}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-neutral-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    required
+                  >
+                    {Object.entries(WeekDayLabels).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. Recurring Start/End Dates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Gäller från <span className="text-error">*</span>
+                    </label>
+                    <Input
+                      type="date"
+                      name="recurringStartDate"
+                      value={formData.recurringStartDate}
+                      onChange={handleChange}
+                      min={new Date().toISOString().split("T")[0]}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Gäller till (Valfritt)</label>
+                    <Input
+                      type="date"
+                      name="recurringEndDate"
+                      value={formData.recurringEndDate}
+                      onChange={handleChange}
+                      min={formData.recurringStartDate}
+                      placeholder="Tills vidare"
+                    />
+                  </div>
+                </div>
+              </div>
             ) : (
-              <Input
-                type="date"
-                name="specificDate"
-                value={formData.specificDate}
-                onChange={handleChange}
-                min={new Date().toISOString().split("T")[0]}
-                required={!formData.isRecurring}
-              />
+              /* 1. Specific Date (One-Off) */
+              <div>
+                <label className="block text-sm font-medium mb-2">Datum</label>
+                <Input
+                  type="date"
+                  name="specificDate"
+                  value={formData.specificDate}
+                  onChange={handleChange}
+                  min={new Date().toISOString().split("T")[0]}
+                  required={!formData.isRecurring}
+                />
+              </div>
             )}
           </div>
 
@@ -260,7 +326,6 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
               <Clock size={20} className="text-primary" />
               <h3 className="font-semibold">Tid</h3>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -274,7 +339,6 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Sluttid <span className="text-error">*</span>
@@ -290,13 +354,12 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
             </div>
           </div>
 
-          {/* Max Students */}
+          {/* Capacity */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Users size={20} className="text-primary" />
               <h3 className="font-semibold">Kapacitet</h3>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">
                 Max antal elever <span className="text-error">*</span>
@@ -307,21 +370,16 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
                 value={formData.maxStudents}
                 onChange={handleChange}
                 min="1"
-                placeholder="10"
                 required
               />
             </div>
           </div>
 
-          {/* Subjects Selection */}
+          {/* Subjects */}
           <div className="space-y-4">
             <h3 className="font-semibold">
               Ämnen <span className="text-error">*</span>
             </h3>
-            <p className="text-sm text-neutral-secondary">
-              Välj vilka ämnen som erbjuds under detta pass
-            </p>
-
             {loadingSubjects ? (
               <p className="text-sm text-neutral-secondary">Laddar ämnen...</p>
             ) : (
@@ -329,11 +387,7 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
                 {availableSubjects.map((subject) => (
                   <label
                     key={subject.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                      formData.subjectIds.includes(subject.id)
-                        ? "border-primary bg-primary/5"
-                        : "border-neutral-stroke hover:border-primary/50"
-                    }`}
+                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${formData.subjectIds.includes(subject.id) ? "border-primary bg-primary/5" : "border-neutral-stroke hover:border-primary/50"}`}
                   >
                     <input
                       type="checkbox"
