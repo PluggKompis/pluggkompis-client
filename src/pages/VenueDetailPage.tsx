@@ -106,11 +106,21 @@ export const VenueDetailPage: React.FC = () => {
       } else {
         setApplyError("Du har redan ansökt till denna plats eller är redan volontär här.");
       }
-    } catch (error: any) {
-      // Axios error from getMyProfile or applyToVenue
+    } catch (error) {
+      // FIX: We tell TypeScript exactly what structure we expect, instead of using 'any'
+      const err = error as {
+        response?: {
+          status: number;
+          data?: {
+            errors?: string[];
+          };
+        };
+      };
+
+      // Now we can safely check properties because we defined them above
       if (
-        error.response?.status === 404 &&
-        error.response?.data?.errors?.includes("Volunteer profile not found.")
+        err.response?.status === 404 &&
+        err.response?.data?.errors?.includes("Volunteer profile not found.")
       ) {
         // Redirect to create profile with message
         navigate("/volunteer", {
