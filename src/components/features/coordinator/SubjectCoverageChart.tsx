@@ -16,26 +16,22 @@ export const SubjectCoverageChart: React.FC<SubjectCoverageChartProps> = ({ data
     );
   }
 
-  // Find max count for scaling bars
-  const maxCount = Math.max(...data.map((s) => s.volunteersCount), 1);
-
-  // Color logic with your custom colors
+  // Color logic: State-based
   const getColor = (count: number): string => {
-    if (count >= 4) return "#24A54F"; // Green - good coverage
-    if (count >= 2) return "#E8A93F"; // Yellow - needs attention
-    return "#DE7573"; // Red - critical
+    if (count >= 2) return "#24A54F"; // Green - Good coverage (2+)
+    if (count === 1) return "#E8A93F"; // Yellow - Needs attention (1)
+    return "#DE7573"; // Red - Critical (0)
   };
 
   return (
     <Card>
       <div className="mb-6">
         <h3 className="mb-2">Ämnesområden - Volontärstäckning</h3>
-        <p className="text-sm text-neutral-secondary">Antal volontärer per ämne denna vecka</p>
+        <p className="text-sm text-neutral-secondary">Status för volontärstäckning denna vecka</p>
       </div>
 
       <div className="space-y-4">
         {data.map((subject, index) => {
-          const percentage = (subject.volunteersCount / maxCount) * 100;
           const color = getColor(subject.volunteersCount);
 
           return (
@@ -46,13 +42,18 @@ export const SubjectCoverageChart: React.FC<SubjectCoverageChartProps> = ({ data
                   {subject.volunteersCount} volontär{subject.volunteersCount !== 1 ? "er" : ""}
                 </span>
               </div>
+
+              {/* Bar container */}
               <div className="relative h-8 bg-neutral-bg rounded-lg overflow-hidden">
-                {/* Single bar - clean and simple! */}
+                {/* Full width bar (100%) 
+                   The color alone indicates the state.
+                */}
                 <div
                   className="h-full rounded-lg transition-all duration-500"
                   style={{
-                    width: `${Math.max(percentage, 5)}%`,
+                    width: "100%",
                     backgroundColor: color,
+                    opacity: 0.9, // Optional: Slight transparency for a softer look
                   }}
                 />
               </div>
@@ -65,15 +66,15 @@ export const SubjectCoverageChart: React.FC<SubjectCoverageChartProps> = ({ data
       <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-neutral-stroke">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: "#24A54F" }} />
-          <span className="text-sm text-neutral-secondary">God täckning (4+)</span>
+          <span className="text-sm text-neutral-secondary">God täckning (2+)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: "#E8A93F" }} />
-          <span className="text-sm text-neutral-secondary">Behöver fler (2-3)</span>
+          <span className="text-sm text-neutral-secondary">Behöver fler (1)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: "#DE7573" }} />
-          <span className="text-sm text-neutral-secondary">Kritiskt (0-1)</span>
+          <span className="text-sm text-neutral-secondary">Kritiskt (0)</span>
         </div>
       </div>
     </Card>

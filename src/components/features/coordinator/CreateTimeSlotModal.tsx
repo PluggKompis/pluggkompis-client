@@ -2,19 +2,34 @@ import React, { useState, useEffect } from "react";
 import { X, AlertCircle, Clock, Users, Calendar } from "lucide-react";
 import { Button, Input } from "../../common";
 import { timeSlotService, volunteerService } from "@/services";
-import { CreateTimeSlotRequest, WeekDay, WeekDayLabels, Subject } from "@/types";
+import {
+  CreateTimeSlotRequest,
+  UpdateTimeSlotRequest,
+  WeekDay,
+  WeekDayLabels,
+  Subject,
+  TimeSlotSummary,
+  TimeSlotStatus,
+} from "@/types";
 
 interface CreateTimeSlotModalProps {
   venueId: string;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: TimeSlotSummary | null; // Data for editing
 }
 
 export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
   venueId,
   onClose,
   onSuccess,
+  initialData,
 }) => {
+  const isEditing = !!initialData;
+
+  // Helper to convert "16:00:00" -> "16:00" for input field
+  const parseTime = (timeStr?: string) => (timeStr ? timeStr.substring(0, 5) : "");
+
   const [formData, setFormData] = useState<{
     dayOfWeek: WeekDay;
     startTime: string;
@@ -26,15 +41,20 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     recurringEndDate: string;
     subjectIds: string[];
   }>({
-    dayOfWeek: WeekDay.Monday,
-    startTime: "16:00",
-    endTime: "18:00",
-    maxStudents: "10",
-    isRecurring: true,
-    specificDate: "",
-    recurringStartDate: "",
-    recurringEndDate: "",
-    subjectIds: [],
+    // If editing, use existing data. Else defaults.
+    dayOfWeek: initialData ? (initialData.dayOfWeek as unknown as WeekDay) : WeekDay.Monday,
+    startTime: initialData ? parseTime(initialData.startTime) : "16:00",
+    endTime: initialData ? parseTime(initialData.endTime) : "18:00",
+    maxStudents: initialData ? initialData.maxStudents.toString() : "10",
+    isRecurring: initialData ? initialData.isRecurring : true,
+
+    // Dates (handle potential nulls from backend)
+    specificDate: initialData?.specificDate || "",
+    recurringStartDate: initialData?.recurringStartDate || "",
+    recurringEndDate: initialData?.recurringEndDate || "",
+
+    // Map existing subjects to IDs
+    subjectIds: initialData ? initialData.subjects.map((s) => s.id) : [],
   });
 
   const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
@@ -43,7 +63,7 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
   const [showSuccess, setShowSuccess] = useState(false);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
 
-  // Fetch available subjects
+  // Fetch subjects on mount
   useEffect(() => {
     fetchSubjects();
   }, []);
@@ -61,14 +81,14 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     }
   };
 
-  // --- Auto-sync DayOfWeek when Specific Date changes ---
-  // This prevents sending "Monday" when the user picks a "Wednesday" date
+  // Auto-sync DayOfWeek when Specific Date changes (One-Off Logic)
   useEffect(() => {
+    // Only auto-sync if NOT editing (or if user changes date manually while editing)
+    // We don't want to overwrite the loaded day immediately if the date format differs slightly
     if (!formData.isRecurring && formData.specificDate) {
       const date = new Date(formData.specificDate);
       const jsDay = date.getDay(); // 0 = Sunday, 1 = Monday...
 
-      // Map JS Day to your WeekDay Enum
       const dayMap: Record<number, WeekDay> = {
         1: WeekDay.Monday,
         2: WeekDay.Tuesday,
@@ -111,32 +131,28 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    // Validation
+    // --- Validation ---
     if (!formData.startTime || !formData.endTime) {
       setError("Start- och sluttid är obligatoriska");
       return;
     }
-
     if (formData.startTime >= formData.endTime) {
       setError("Sluttid måste vara efter starttid");
       return;
     }
-
     const maxStudents = parseInt(formData.maxStudents);
     if (isNaN(maxStudents) || maxStudents < 1) {
       setError("Max antal elever måste vara minst 1");
       return;
     }
-
     if (formData.subjectIds.length === 0) {
       setError("Välj minst ett ämne");
       return;
     }
 
-    // --- Recurring Date Validation ---
     if (formData.isRecurring) {
       if (!formData.recurringStartDate) {
-        setError("Du måste välja ett startdatum för det återkommande passet");
+        setError("Du måste välja ett startdatum");
         return;
       }
       if (formData.recurringEndDate && formData.recurringEndDate < formData.recurringStartDate) {
@@ -145,7 +161,7 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
       }
     } else {
       if (!formData.specificDate) {
-        setError("Välj ett specifikt datum för engångspass");
+        setError("Välj ett specifikt datum");
         return;
       }
     }
@@ -153,9 +169,30 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
     try {
       setIsSubmitting(true);
 
-      const requestData: CreateTimeSlotRequest = {
-        venueId: venueId,
-        dayOfWeek: formData.dayOfWeek,
+      // Determine correct Day Number (0-6)
+      const weekDayMap: Record<string, number> = {
+        Monday: 1,
+        Tuesday: 2,
+        Wednesday: 3,
+        Thursday: 4,
+        Friday: 5,
+        Saturday: 6,
+        Sunday: 0,
+      };
+
+      let finalDayNumber: number;
+      if (formData.isRecurring) {
+        // Use dropdown value
+        finalDayNumber = weekDayMap[formData.dayOfWeek] ?? 1;
+      } else {
+        // Calculate from date
+        const dateObj = new Date(formData.specificDate);
+        finalDayNumber = dateObj.getDay();
+      }
+
+      // Shared Data Payload
+      const commonData = {
+        dayOfWeek: finalDayNumber as unknown as WeekDay,
         startTime: `${formData.startTime}:00`,
         endTime: `${formData.endTime}:00`,
         maxStudents,
@@ -166,18 +203,34 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
         subjectIds: formData.subjectIds,
       };
 
-      const result = await timeSlotService.createTimeSlot(requestData);
+      let result;
+
+      if (isEditing && initialData) {
+        // --- UPDATE MODE ---
+        const updateRequest: UpdateTimeSlotRequest = {
+          ...commonData,
+          status: initialData.status as TimeSlotStatus, // Maintain existing status
+        };
+        result = await timeSlotService.updateTimeSlot(initialData.id, updateRequest);
+      } else {
+        // --- CREATE MODE ---
+        const createRequest: CreateTimeSlotRequest = {
+          ...commonData,
+          venueId: venueId,
+        };
+        result = await timeSlotService.createTimeSlot(createRequest);
+      }
 
       if (result.isSuccess) {
         setShowSuccess(true);
         setTimeout(() => {
           onSuccess();
-        }, 2000);
+        }, 1500);
       } else {
-        setError(result.errors?.[0] || "Kunde inte skapa tidspass");
+        setError(result.errors?.[0] || `Kunde inte ${isEditing ? "uppdatera" : "skapa"} tidspass`);
       }
     } catch (err) {
-      console.error("Failed to create timeslot:", err);
+      console.error("Failed to save timeslot:", err);
       setError("Ett oväntat fel uppstod");
     } finally {
       setIsSubmitting(false);
@@ -189,26 +242,23 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-neutral-stroke p-6 flex items-center justify-between z-10">
-          <h2 className="text-xl font-bold">Skapa nytt tidspass</h2>
-          <button
-            onClick={onClose}
-            className="text-neutral-secondary hover:text-neutral-primary transition-colors"
-            disabled={isSubmitting || showSuccess}
-          >
-            <X size={24} />
+          <h2 className="text-xl font-bold">
+            {isEditing ? "Redigera tidspass" : "Skapa nytt tidspass"}
+          </h2>
+          <button onClick={onClose} disabled={isSubmitting || showSuccess}>
+            <X size={24} className="text-neutral-secondary hover:text-neutral-primary" />
           </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Success Message */}
           {showSuccess && (
             <div className="p-4 bg-success/10 border border-success rounded-lg flex items-start gap-3">
-              <p className="text-success font-medium">Tidspasset har skapats!</p>
+              <p className="text-success font-medium">
+                Tidspasset har {isEditing ? "sparats" : "skapats"}!
+              </p>
             </div>
           )}
-
-          {/* Error Message */}
           {error && (
             <div className="p-4 bg-error/10 border border-error rounded-lg flex items-start gap-3">
               <AlertCircle size={20} className="text-error flex-shrink-0 mt-0.5" />
@@ -216,49 +266,50 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
             </div>
           )}
 
-          {/* Type Toggle */}
+          {/* Type Toggle (Disabled if editing to avoid complex logic switching types) */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Calendar size={20} className="text-primary" />
               <h3 className="font-semibold">Typ av pass</h3>
             </div>
-
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => handleRecurringToggle(true)}
+                onClick={() => !isEditing && handleRecurringToggle(true)}
                 className={`p-4 rounded-lg border-2 transition-colors ${
                   formData.isRecurring
                     ? "border-primary bg-primary/5"
                     : "border-neutral-stroke hover:border-primary/50"
-                }`}
+                } ${isEditing ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <p className="font-semibold mb-1">Återkommande</p>
                 <p className="text-xs text-neutral-secondary">Varje vecka samma dag</p>
               </button>
-
               <button
                 type="button"
-                onClick={() => handleRecurringToggle(false)}
+                onClick={() => !isEditing && handleRecurringToggle(false)}
                 className={`p-4 rounded-lg border-2 transition-colors ${
                   !formData.isRecurring
                     ? "border-primary bg-primary/5"
                     : "border-neutral-stroke hover:border-primary/50"
-                }`}
+                } ${isEditing ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <p className="font-semibold mb-1">Engångspass</p>
                 <p className="text-xs text-neutral-secondary">Specifikt datum</p>
               </button>
             </div>
+            {isEditing && (
+              <p className="text-xs text-neutral-secondary">
+                Du kan inte ändra typ av pass vid redigering.
+              </p>
+            )}
           </div>
 
           {/* Date & Day Selection */}
           <div className="space-y-4">
             <h3 className="font-semibold">När?</h3>
-
             {formData.isRecurring ? (
               <div className="space-y-4">
-                {/* 1. Weekday (Recurring) */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Veckodag</label>
                   <select
@@ -275,8 +326,6 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
                     ))}
                   </select>
                 </div>
-
-                {/* 2. Recurring Start/End Dates */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -305,7 +354,6 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
                 </div>
               </div>
             ) : (
-              /* 1. Specific Date (One-Off) */
               <div>
                 <label className="block text-sm font-medium mb-2">Datum</label>
                 <Input
@@ -420,7 +468,7 @@ export const CreateTimeSlotModal: React.FC<CreateTimeSlotModalProps> = ({
               disabled={isSubmitting || showSuccess || loadingSubjects}
               className="flex-1"
             >
-              {isSubmitting ? "Skapar..." : showSuccess ? "Skapat!" : "Skapa tidspass"}
+              {isSubmitting ? "Sparar..." : isEditing ? "Spara ändringar" : "Skapa tidspass"}
             </Button>
           </div>
         </form>

@@ -1,17 +1,28 @@
-// src/components/features/coordinator/TimeSlotsManager.tsx
 import React, { useState, useEffect } from "react";
 import { Card, Button, Tag, Spinner } from "../../common";
 import { CreateTimeSlotModal } from "./CreateTimeSlotModal";
+// Import the new ConfirmationModal
+import { ConfirmationModal } from "./ConfirmationModal";
 import { venueService, timeSlotService } from "@/services";
 import { TimeSlotSummary, WeekDay, WeekDayLabels, TimeSlotStatus } from "@/types";
-import { Clock, Users, AlertCircle, Trash2, Edit, Calendar } from "lucide-react";
+import { Clock, Users, AlertCircle, Trash2, Edit, Calendar, CheckCircle } from "lucide-react";
 
 export const TimeSlotsManager: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [venueId, setVenueId] = useState<string | null>(null);
   const [timeSlots, setTimeSlots] = useState<TimeSlotSummary[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Feedback States (Inline Alerts)
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Edit State
+  const [editingSlot, setEditingSlot] = useState<TimeSlotSummary | null>(null);
+
+  // Delete State
+  const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchVenueAndTimeSlots();
@@ -44,46 +55,75 @@ export const TimeSlotsManager: React.FC = () => {
     }
   };
 
-  const handleCreateSuccess = () => {
+  // --- Handlers ---
+
+  const handleModalSuccess = () => {
     setShowCreateModal(false);
+    setEditingSlot(null);
+    setSuccessMessage(editingSlot ? "Tidspasset har uppdaterats!" : "Tidspasset har skapats!");
+
+    // Clear success message after 3 seconds
+    setTimeout(() => setSuccessMessage(null), 3000);
+
     fetchVenueAndTimeSlots();
   };
 
-  const handleDeleteTimeSlot = async (id: string) => {
-    if (!confirm("Är du säker på att du vill radera detta tidspass?")) {
-      return;
-    }
+  const handleEditClick = (slot: TimeSlotSummary) => {
+    setEditingSlot(slot);
+    setShowCreateModal(true);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowCreateModal(false);
+    setEditingSlot(null);
+  };
+
+  // 1. Open Delete Modal
+  const confirmDelete = (id: string) => {
+    setSlotToDelete(id);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
+  // 2. Perform Delete (called by ConfirmationModal)
+  const handleDeleteTimeSlot = async () => {
+    if (!slotToDelete) return;
 
     try {
-      const result = await timeSlotService.deleteTimeSlot(id);
+      setIsDeleting(true);
+      const result = await timeSlotService.deleteTimeSlot(slotToDelete);
+
       if (result.isSuccess) {
+        setSuccessMessage("Tidspasset har raderats.");
+        setTimeout(() => setSuccessMessage(null), 3000);
         fetchVenueAndTimeSlots();
       } else {
-        alert(result.errors?.[0] || "Kunde inte radera tidspasset");
+        setError(result.errors?.[0] || "Kunde inte radera tidspasset");
       }
     } catch (err) {
       console.error("Failed to delete timeslot:", err);
-      alert("Ett oväntat fel uppstod");
+      setError("Ett oväntat fel uppstod");
+    } finally {
+      setIsDeleting(false);
+      setSlotToDelete(null); // Close modal
     }
   };
 
-  // Separate recurring and one-time slots
+  // Grouping Logic...
   const recurringSlots = timeSlots.filter((slot) => slot.isRecurring);
   const oneTimeSlots = timeSlots
     .filter((slot) => !slot.isRecurring)
     .sort((a, b) => {
-      // Sort by date
       if (!a.specificDate || !b.specificDate) return 0;
       return new Date(a.specificDate).getTime() - new Date(b.specificDate).getTime();
     });
 
-  // Group recurring slots by day of week
   const groupedRecurringSlots = recurringSlots.reduce(
     (acc, slot) => {
       const day = slot.dayOfWeek as WeekDay;
-      if (!acc[day]) {
-        acc[day] = [];
-      }
+      if (!acc[day]) acc[day] = [];
       acc[day].push(slot);
       return acc;
     },
@@ -109,15 +149,13 @@ export const TimeSlotsManager: React.FC = () => {
     );
   }
 
+  // Error State (Critical - No Venue)
   if (error && !venueId) {
     return (
       <Card>
         <div className="text-center py-12">
           <AlertCircle size={48} className="mx-auto text-neutral-secondary mb-4" />
           <p className="text-neutral-secondary mb-4">{error}</p>
-          <p className="text-sm text-neutral-secondary">
-            Gå till fliken "Min Plats" för att skapa din plats först
-          </p>
         </div>
       </Card>
     );
@@ -136,12 +174,32 @@ export const TimeSlotsManager: React.FC = () => {
         <Button
           variant="primary"
           size="sm"
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            setEditingSlot(null);
+            setShowCreateModal(true);
+            setError(null);
+            setSuccessMessage(null);
+          }}
           disabled={!venueId}
         >
           + Skapa nytt pass
         </Button>
       </div>
+
+      {/* --- INLINE FEEDBACK (Toast Replacement) --- */}
+      {successMessage && (
+        <div className="p-4 bg-success/10 border border-success rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle size={20} className="text-success flex-shrink-0 mt-0.5" />
+          <p className="text-success font-medium">{successMessage}</p>
+        </div>
+      )}
+
+      {error && venueId && (
+        <div className="p-4 bg-error/10 border border-error rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <AlertCircle size={20} className="text-error flex-shrink-0 mt-0.5" />
+          <p className="text-error font-medium">{error}</p>
+        </div>
+      )}
 
       {/* Empty State */}
       {timeSlots.length === 0 ? (
@@ -180,7 +238,9 @@ export const TimeSlotsManager: React.FC = () => {
                           <TimeSlotCard
                             key={slot.id}
                             timeSlot={slot}
-                            onDelete={handleDeleteTimeSlot}
+                            // Pass confirmDelete instead of direct delete
+                            onDelete={() => confirmDelete(slot.id)}
+                            onEdit={() => handleEditClick(slot)}
                           />
                         ))}
                       </div>
@@ -204,8 +264,9 @@ export const TimeSlotsManager: React.FC = () => {
                   <TimeSlotCard
                     key={slot.id}
                     timeSlot={slot}
-                    onDelete={handleDeleteTimeSlot}
-                    showFullDate // Show full date for one-time slots
+                    onDelete={() => confirmDelete(slot.id)}
+                    onEdit={() => handleEditClick(slot)}
+                    showFullDate
                   />
                 ))}
               </div>
@@ -214,41 +275,52 @@ export const TimeSlotsManager: React.FC = () => {
         </>
       )}
 
-      {/* Create Modal */}
+      {/* Create/Edit Modal */}
       {showCreateModal && venueId && (
         <CreateTimeSlotModal
           venueId={venueId}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={handleCreateSuccess}
+          onClose={handleCloseModal}
+          onSuccess={handleModalSuccess}
+          initialData={editingSlot}
         />
       )}
+
+      {/* --- CONFIRMATION MODAL --- */}
+      <ConfirmationModal
+        isOpen={!!slotToDelete}
+        onClose={() => setSlotToDelete(null)}
+        onConfirm={handleDeleteTimeSlot}
+        title="Radera tidspass"
+        message="Är du säker på att du vill radera detta tidspass? Detta går inte att ångra."
+        confirmLabel="Radera"
+        isDestructive={true}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
 
-// TimeSlot Card Component
+// TimeSlotCard Component (Same as before)
 interface TimeSlotCardProps {
   timeSlot: TimeSlotSummary;
-  onDelete: (id: string) => void;
-  showFullDate?: boolean; // For one-time slots
+  onDelete: () => void; // Changed from (id:string)=>void to just void
+  onEdit: () => void;
+  showFullDate?: boolean;
 }
 
 const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
   timeSlot,
   onDelete,
+  onEdit,
   showFullDate = false,
 }) => {
-  const formatTime = (time: string) => {
-    return time.substring(0, 5);
-  };
-
+  const formatTime = (time: string) => time.substring(0, 5);
   const availableSpots = timeSlot.maxStudents - timeSlot.currentBookings;
   const utilizationPercent = (timeSlot.currentBookings / timeSlot.maxStudents) * 100;
 
   return (
     <div className="flex items-start gap-4 p-4 bg-neutral-bg rounded-lg border border-neutral-stroke hover:border-primary/30 transition-colors">
       <div className="flex-1">
-        {/* Time & Status */}
         <div className="flex items-center gap-3 mb-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Clock size={18} className="text-primary" />
@@ -261,7 +333,6 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
           ) : (
             <Tag variant="success">Aktiv</Tag>
           )}
-          {/* Show date for one-time slots */}
           {showFullDate && timeSlot.specificDate && (
             <Tag variant="neutral">
               {new Date(timeSlot.specificDate).toLocaleDateString("sv-SE", {
@@ -273,29 +344,17 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
             </Tag>
           )}
         </div>
-
-        {/* Bookings */}
         <div className="flex items-center gap-4 mb-3 text-sm text-neutral-secondary">
           <div className="flex items-center gap-1">
             <Users size={16} />
             <span>
               {timeSlot.currentBookings}/{timeSlot.maxStudents} bokade
             </span>
-            <span
-              className={`ml-1 ${
-                utilizationPercent > 80
-                  ? "text-warning"
-                  : utilizationPercent === 100
-                    ? "text-error"
-                    : "text-success"
-              }`}
-            >
+            <span className={`ml-1 ${utilizationPercent > 80 ? "text-warning" : "text-success"}`}>
               ({availableSpots} platser kvar)
             </span>
           </div>
         </div>
-
-        {/* Subjects */}
         <div className="flex flex-wrap gap-2">
           {timeSlot.subjects.map((subject) => (
             <Tag key={subject.id} variant="subject" icon={subject.icon}>
@@ -304,13 +363,11 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
           ))}
         </div>
       </div>
-
-      {/* Actions */}
       <div className="flex gap-2">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => alert("Edit modal coming soon!")}
+          onClick={onEdit}
           disabled={timeSlot.status === TimeSlotStatus.Cancelled}
         >
           <Edit size={16} />
@@ -318,7 +375,7 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onDelete(timeSlot.id)}
+          onClick={onDelete}
           disabled={timeSlot.status === TimeSlotStatus.Cancelled}
           className="hover:border-error hover:text-error"
         >
