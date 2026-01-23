@@ -79,17 +79,18 @@ export interface VolunteerSummary {
 export interface TimeSlot {
   id: string;
   venueId: string;
-
   dayOfWeek: WeekDay;
   startTime: string;
   endTime: string;
-
   maxStudents: number;
   status: TimeSlotStatus;
-
   subjects: Subject[]; // Full subject details
   createdAt?: string;
   updatedAt?: string;
+  isRecurring: boolean;
+  specificDate?: string; // "YYYY-MM-DD"
+  recurringStartDate?: string; // "YYYY-MM-DD"
+  recurringEndDate?: string; // "YYYY-MM-DD"
 }
 
 // TimeSlot summary (lightweight version for venue display)
@@ -104,9 +105,11 @@ export interface TimeSlotSummary {
   availableSpots: number;
   status: string;
   subjects: Subject[];
-  isRecurring: boolean;
-  specificDate?: string;
   currentBookings: number;
+  isRecurring: boolean;
+  specificDate?: string; // "YYYY-MM-DD"
+  recurringStartDate?: string; // "YYYY-MM-DD"
+  recurringEndDate?: string; // "YYYY-MM-DD"
 }
 
 export enum TimeSlotStatus {
@@ -208,6 +211,8 @@ export interface CreateTimeSlotRequest {
   isRecurring: boolean;
   specificDate?: string; // "2026-02-15" format (only for one-time slots)
   subjectIds: string[]; // Array of subject GUIDs
+  recurringStartDate?: string; // Required if isRecurring = true
+  recurringEndDate?: string; // Optional
 }
 
 // Request for updating a timeslot
@@ -220,4 +225,6 @@ export interface UpdateTimeSlotRequest {
   specificDate?: string; // "2026-02-15" format
   subjectIds: string[];
   status: TimeSlotStatus; // Can update status (Open, Full, Cancelled)
+  recurringStartDate?: string; // Required if isRecurring = true
+  recurringEndDate?: string; // Optional
 }
