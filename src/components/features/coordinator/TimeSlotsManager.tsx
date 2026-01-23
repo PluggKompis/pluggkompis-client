@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Tag, Spinner } from "../../common";
 import { CreateTimeSlotModal } from "./CreateTimeSlotModal";
-// Import the new ConfirmationModal
-import { ConfirmationModal } from "./ConfirmationModal";
+import { ConfirmationModal } from "../../common/ConfirmationModal";
 import { venueService, timeSlotService } from "@/services";
 import { TimeSlotSummary, WeekDay, WeekDayLabels, TimeSlotStatus } from "@/types";
 import { Clock, Users, AlertCircle, Trash2, Edit, Calendar, CheckCircle } from "lucide-react";

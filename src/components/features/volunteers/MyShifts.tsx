@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Clock, AlertCircle } from "lucide-react";
+import { Calendar, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { Card, Tag, Button, EmptyState, Spinner } from "../../common";
+import { ConfirmationModal } from "../../common/ConfirmationModal";
 import { volunteerService } from "@/services";
 import { VolunteerShiftDto, VolunteerShiftStatus, WeekDayLabels } from "@/types";
 
@@ -8,10 +9,16 @@ export const MyShifts: React.FC = () => {
   const [upcomingShifts, setUpcomingShifts] = useState<VolunteerShiftDto[]>([]);
   const [pastShifts, setPastShifts] = useState<VolunteerShiftDto[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Feedback State
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Modal State
+  const [shiftToCancel, setShiftToCancel] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
-    console.log(localStorage.getItem("user"));
     fetchShifts();
   }, []);
 
@@ -20,7 +27,6 @@ export const MyShifts: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch both upcoming and past shifts in parallel
       const [upcomingResult, pastResult] = await Promise.all([
         volunteerService.getUpcomingShifts(),
         volunteerService.getPastShifts(),
@@ -34,7 +40,6 @@ export const MyShifts: React.FC = () => {
         setPastShifts(pastResult.data);
       }
 
-      // Show error if both failed
       if (!upcomingResult.isSuccess && !pastResult.isSuccess) {
         setError(upcomingResult.errors?.[0] || "Kunde inte hämta pass");
       }
@@ -46,30 +51,41 @@ export const MyShifts: React.FC = () => {
     }
   };
 
-  const handleCancelShift = async (shiftId: string) => {
-    if (!confirm("Är du säker på att du vill avboka detta pass?")) {
-      return;
-    }
+  // 1. Triggered when user clicks "Avboka" -> Opens Modal
+  const requestCancelShift = (shiftId: string) => {
+    setShiftToCancel(shiftId);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
+  // 2. Triggered when user clicks "Bekräfta" in Modal
+  const handleConfirmCancel = async () => {
+    if (!shiftToCancel) return;
 
     try {
-      const result = await volunteerService.cancelShift(shiftId);
+      setIsCancelling(true);
+      const result = await volunteerService.cancelShift(shiftToCancel);
 
       if (result.isSuccess) {
-        // Remove from upcoming list
-        setUpcomingShifts((prev) => prev.filter((s) => s.id !== shiftId));
+        // Optimistic update: Remove from list immediately
+        setUpcomingShifts((prev) => prev.filter((s) => s.id !== shiftToCancel));
+
+        // Show Success Toast
+        setSuccessMessage("Passet har avbokats.");
+        setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        alert(result.errors?.[0] || "Kunde inte avboka passet");
+        setError(result.errors?.[0] || "Kunde inte avboka passet");
       }
     } catch (err) {
       console.error("Failed to cancel shift:", err);
-      alert("Ett oväntat fel uppstod");
+      setError("Ett oväntat fel uppstod");
+    } finally {
+      setIsCancelling(false);
+      setShiftToCancel(null); // Close modal
     }
   };
 
-  const formatTime = (time: string) => {
-    // "16:00:00" -> "16:00"
-    return time.substring(0, 5);
-  };
+  const formatTime = (time: string) => time.substring(0, 5);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("sv-SE", {
@@ -89,7 +105,8 @@ export const MyShifts: React.FC = () => {
     );
   }
 
-  if (error) {
+  // Critical Error (Full Page)
+  if (error && upcomingShifts.length === 0 && pastShifts.length === 0) {
     return (
       <Card>
         <div className="flex items-start gap-3 p-4 bg-error/10 border border-error rounded-lg">
@@ -108,6 +125,22 @@ export const MyShifts: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* --- INLINE FEEDBACK (Success Toast) --- */}
+      {successMessage && (
+        <div className="p-4 bg-success/10 border border-success rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle size={20} className="text-success flex-shrink-0 mt-0.5" />
+          <p className="text-success font-medium">{successMessage}</p>
+        </div>
+      )}
+
+      {/* --- INLINE FEEDBACK (Error Toast) --- */}
+      {error && (
+        <div className="p-4 bg-error/10 border border-error rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <AlertCircle size={20} className="text-error flex-shrink-0 mt-0.5" />
+          <p className="text-error font-medium">{error}</p>
+        </div>
+      )}
+
       {/* Upcoming Shifts */}
       {upcomingShifts.length > 0 && (
         <div>
@@ -130,7 +163,6 @@ export const MyShifts: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Venue Name */}
                     <h3 className="mb-2">{shift.venueName || "Okänd plats"}</h3>
 
                     {/* Date & Time */}
@@ -150,7 +182,6 @@ export const MyShifts: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Duration */}
                     {shift.durationHours && (
                       <div className="flex items-center gap-2 text-neutral-secondary mb-2">
                         <Calendar size={16} />
@@ -158,7 +189,6 @@ export const MyShifts: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Notes */}
                     {shift.notes && (
                       <p className="text-sm text-neutral-secondary italic mt-2">
                         Anteckningar: {shift.notes}
@@ -166,13 +196,13 @@ export const MyShifts: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Cancel Button - Only for future shifts */}
+                  {/* Cancel Button */}
                   {shift.status !== VolunteerShiftStatus.Cancelled &&
                     shift.status !== VolunteerShiftStatus.Completed && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleCancelShift(shift.id)}
+                        onClick={() => requestCancelShift(shift.id)}
                       >
                         Avboka
                       </Button>
@@ -200,9 +230,7 @@ export const MyShifts: React.FC = () => {
                         <Tag variant="neutral">Ej markerad</Tag>
                       )}
                     </div>
-
                     <h3 className="mb-2">{shift.venueName || "Okänd plats"}</h3>
-
                     <div className="flex items-center gap-2 text-neutral-secondary mb-2">
                       <Clock size={16} />
                       {shift.nextOccurrenceStartUtc ? (
@@ -218,13 +246,6 @@ export const MyShifts: React.FC = () => {
                         </span>
                       )}
                     </div>
-
-                    {shift.durationHours && (
-                      <div className="flex items-center gap-2 text-neutral-secondary">
-                        <Calendar size={16} />
-                        <span className="text-sm">{shift.durationHours} timmar</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </Card>
@@ -232,6 +253,18 @@ export const MyShifts: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* --- REUSABLE CONFIRMATION MODAL --- */}
+      <ConfirmationModal
+        isOpen={!!shiftToCancel}
+        onClose={() => setShiftToCancel(null)}
+        onConfirm={handleConfirmCancel}
+        title="Avboka pass"
+        message="Är du säker på att du vill avboka detta pass?"
+        confirmLabel="Ja, avboka"
+        isDestructive={true}
+        isLoading={isCancelling}
+      />
     </div>
   );
 };

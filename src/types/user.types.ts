@@ -74,3 +74,16 @@ export interface Coordinator extends User {
   venueId: string;
   venue?: Venue;
 }
+
+// DTOs for profile updates
+export interface UpdateMyProfileDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}

@@ -217,7 +217,7 @@ export const AvailableShifts: React.FC = () => {
                   size="sm"
                   onClick={() => setConfirmingShift(shift.timeSlotId)}
                 >
-                  Boka pass
+                  Anmäl dig till pass
                 </Button>
               )}
             </div>

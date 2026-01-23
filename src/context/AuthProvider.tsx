@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { authService, parentService } from "@/services"; // ← Use parentService
 import { AuthContext, AuthContextType, User } from "./AuthContext";
 import { Child, UserRole } from "@/types";
+import { userService } from "@/services";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -141,14 +142,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Refresh user data (mainly for updating children)
   const refreshUserData = async () => {
-    if (!user) return;
+    // 1. Fetch fresh user data from backend
+    const result = await userService.getMe();
 
-    console.log("🔄 Refreshing user data...");
+    if (result.isSuccess && result.data) {
+      console.log("🔄 User data refreshed from backend");
 
-    if (user.role === UserRole.Parent) {
-      const children = await fetchChildrenForParent();
-      const updatedUser = { ...user, children };
+      // FIX: Explicitly type this variable as 'User' (from AuthContext)
+      // This tells TS: "It's okay, this object is allowed to have 'children'"
+      let updatedUser: User = { ...result.data };
 
+      // 2. If Parent, keep fetching children logic
+      if (updatedUser.role === UserRole.Parent) {
+        const children = await fetchChildrenForParent();
+        updatedUser = { ...updatedUser, children };
+      }
+
+      // 3. Update State and LocalStorage
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
