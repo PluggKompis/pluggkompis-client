@@ -129,6 +129,15 @@ export const VolunteersManager: React.FC = () => {
     );
   }
 
+  console.log(
+    "Pending application IDs:",
+    pendingApplications.map((a) => a.applicationId)
+  );
+  console.log(
+    "Active volunteer IDs:",
+    filteredVolunteers.map((v) => v.volunteerId)
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -177,7 +186,7 @@ export const VolunteersManager: React.FC = () => {
             {pendingApplications.length > 0 ? (
               pendingApplications.map((app) => (
                 <VolunteerApplicationCard
-                  key={app.id}
+                  key={app.applicationId}
                   application={app}
                   onApprove={handleApprove}
                   onDecline={handleDecline}

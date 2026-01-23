@@ -83,20 +83,15 @@ export const VenueDetailPage: React.FC = () => {
       const profileResult = await volunteerService.getMyProfile();
 
       if (!profileResult.isSuccess || !profileResult.data) {
-        // Redirect to volunteer dashboard to create profile
+        // Defensive fallback if no profile data but no error thrown
         navigate("/volunteer", {
-          state: {
-            message: "Du måste skapa en volontärprofil innan du kan ansöka till platser.",
-          },
+          state: { message: "Du måste skapa en volontärprofil innan du kan ansöka till platser." },
         });
         return;
       }
 
       // Apply to venue
-      const applyResult = await venueService.applyToVenue({
-        venueId: id,
-        message: undefined,
-      });
+      const applyResult = await venueService.applyToVenue({ venueId: id });
 
       if (applyResult.isSuccess) {
         setApplySuccess(true);
@@ -109,12 +104,22 @@ export const VenueDetailPage: React.FC = () => {
           });
         }, 2000);
       } else {
-        // Backend error - show in Swedish
         setApplyError("Du har redan ansökt till denna plats eller är redan volontär här.");
       }
-    } catch (err) {
-      console.error("Failed to apply:", err);
-      setApplyError("Ett oväntat fel uppstod. Försök igen senare.");
+    } catch (error: any) {
+      // Axios error from getMyProfile or applyToVenue
+      if (
+        error.response?.status === 404 &&
+        error.response?.data?.errors?.includes("Volunteer profile not found.")
+      ) {
+        // Redirect to create profile with message
+        navigate("/volunteer", {
+          state: { message: "Du måste skapa en volontärprofil innan du kan ansöka till platser." },
+        });
+      } else {
+        console.error("Failed to apply:", error);
+        setApplyError("Ett oväntat fel uppstod. Försök igen senare.");
+      }
     } finally {
       setIsApplying(false);
     }
