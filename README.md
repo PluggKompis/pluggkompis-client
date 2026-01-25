@@ -23,6 +23,16 @@ PluggKompis is a platform that connects students and parents with free homework 
 - **Lucide React** 0.303 - Icon library
 - **date-fns** 3.0 - Date utility library
 
+### 💡 Why this Tech Stack?
+
+We chose this modern stack to prioritize **developer experience**, **type safety**, and **performance**:
+
+- **Vite vs Create-React-App:** We opted for Vite for its lightning-fast Hot Module Replacement (HMR) and build times, significantly speeding up our development loop compared to older bundlers.
+- **TypeScript:** Essential for our team collaboration. It catches errors at compile-time and provides self-documenting code, which is crucial for the complex data structures in our booking and venue systems.
+- **Tailwind CSS:** Allows us to build a responsive, mobile-first UI rapidly without context-switching between CSS files and TSX components.
+- **Zod & React Hook Form:** This combination provides a robust solution for our complex forms (like registration and booking), separating UI concerns from validation logic.
+- **Leaflet:** Selected over Google Maps for being lightweight, open-source, and free to use, which fits our project constraints perfectly.
+
 ## 📦 Dependencies
 
 ### Core Dependencies
@@ -119,22 +129,29 @@ npm run lint         # Run ESLint
 ## 📁 Project Structure
 
 ```
-src/
-├── components/
-│   ├── common/          # Reusable UI components (Button, Input, Card, etc.)
-│   ├── venues/          # Venue-related components
-│   ├── bookings/        # Booking-related components
-│   ├── volunteers/      # Volunteer-related components
-│   └── coordinator/     # Coordinator dashboard components
-├── pages/               # Page components (one per route)
-├── services/            # API service layer (axios instances)
-├── hooks/               # Custom React hooks
-├── types/               # TypeScript type definitions
-├── utils/               # Helper functions and utilities
-├── contexts/            # React context providers
-├── App.tsx              # Main app component with routing
-├── main.tsx             # Application entry point
-└── index.css            # Global styles and Tailwind imports
+src/ 
+├── components/ 
+│   ├── auth/ # Authentication forms (Login, Register) 
+│   ├── common/ # Reusable UI components (Button, Modal, Card, etc.) 
+│   ├── layout/ # Layout components (Navbar, Footer, Sidebar) 
+│   └── features/ # Feature-specific components 
+│      ├── bookings/ # Booking management lists and cards 
+│      ├── coordinator/ # Coordinator dashboard widgets 
+│      ├── parent/ # Parent dashboard and child management 
+│      ├── profile/ # User profile and settings 
+│      ├── student/ # Student dashboard views 
+│      ├── timeslots/ # Calendar and slot management 
+│      ├── venues/ # Venue maps, lists, and details 
+│      └── volunteers/ # Volunteer specific tools 
+├── pages/ # Page components (one per route) 
+├── services/ # API service layer (axios instances) 
+├── hooks/ # Custom React hooks 
+├── types/ # TypeScript type definitions 
+├── utils/ # Helper functions and utilities 
+├── contexts/ # React context providers 
+├── App.tsx # Main app component with routing 
+├── main.tsx # Application entry point 
+└── index.css # Global styles and Tailwind imports
 ```
 
 ## 🔐 Authentication
@@ -147,50 +164,29 @@ The app uses JWT (JSON Web Tokens) for authentication:
 
 ## 🗺️ Routing
 
-Main routes:
-
+**Public Routes:**
 - `/` - Home page
+- `/about` - About PluggKompis
+- `/faq` - Frequently Asked Questions
 - `/venues` - Browse all venues
 - `/venues/:id` - Venue detail page
 - `/login` - Login page
 - `/register` - Registration page
-- `/my-bookings` - User's bookings (protected)
-- `/volunteer` - Volunteer dashboard (protected)
-- `/coordinator` - Coordinator dashboard (protected)
+
+**Protected Dashboards:**
+- `/parent` - Parent dashboard (Manage children & bookings)
+- `/student` - Student dashboard (Manage own bookings)
+- `/volunteer` - Volunteer dashboard (Manage assignments)
+- `/coordinator` - Coordinator dashboard (Venue & subject management)
+- `/profile` - User settings and profile management
 
 ## 🎨 Styling
 
 This project uses Tailwind CSS with a custom configuration:
 
-- **Primary color:** Blue (`primary-500` to `primary-900`)
+- **Primary color:** Green (`primary-500` to `primary-900`)
 - **Custom components:** Predefined in `@layer components` (buttons, inputs, cards)
 - **Responsive design:** Mobile-first approach with Tailwind breakpoints
-
-### Custom CSS Classes
-
-```css
-.btn-primary
-  #
-  Primary
-  blue
-  button
-  .btn-secondary
-  #
-  Gray
-  secondary
-  button
-  .input-field
-  #
-  Styled
-  text
-  input
-  .card
-  #
-  White
-  card
-  with
-  shadow;
-```
 
 ## 🌐 API Integration
 
@@ -233,7 +229,7 @@ Vite build configuration with path alias resolution
 
 This app will be deployed to Vercel.
 
-**Live URL:** coming soon
+**Live URL:** [PluggKompis](https://pluggkompis-client.vercel.app/)
 
 ### Build for production
 
@@ -250,6 +246,22 @@ Testing framework will be added in future iterations:
 - **Vitest** for unit tests
 - **React Testing Library** for component tests
 - **Playwright** or **Cypress** for E2E tests
+
+## 🔮 Future Roadmap
+
+We have planned several enhancements to scale the platform's functionality:
+
+### 🏢 Enhanced Coordinator Features
+- **Multi-Venue Management:** Update the coordinator dashboard to support managing multiple locations from a single account.
+- **Subject Administration UI:** A new interface for coordinators to:
+    - Create and name new subjects dynamicially.
+    - Upload or select custom icons for subjects.
+    - Archive or disable subjects that are no longer offered.
+    - Configure venue-specific subjects (e.g., "Math" at City Library vs. "Art" at Youth Center).
+
+### 🎨 UX/UI Improvements
+- **Map/List Toggle:** Add a toggle switch on the "Find Venues" page, allowing users to switch between the interactive map view and a detailed list view for better accessibility.
+- **Notification Settings:** User interface for managing automated email reminders for upcoming bookings.
 
 ## 👥 Team
 
