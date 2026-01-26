@@ -5,6 +5,8 @@ Frontend application for the PluggKompis homework help coordination platform.
 **UI Language:** Swedish  
 **Code Language:** English
 
+![PluggKompis Preview](docs/images/screenshot.jpg)
+
 ## 📋 About PluggKompis
 
 PluggKompis is a platform that connects students and parents with free homework help (läxhjälp) offered at libraries, youth centers (fritidsgårdar), and study associations throughout Sweden.
@@ -288,9 +290,9 @@ This project is created as a school project for NBI Handelsakademin.
 
 ## 🔗 Related Repositories
 
-- **Backend API:** [[pluggkompis-api](https://github.com/PluggKompis/pluggkompis-api)]
-- **Frontend Clinet:** [[pluggkompis-client](https://github.com/PluggKompis/pluggkompis-client)]
-- **Project Board:** [[PluggKompis Project](https://github.com/orgs/PluggKompis/projects/1/views/1)]
+- **Backend API:** [pluggkompis-api](https://github.com/PluggKompis/pluggkompis-api)
+- **Frontend Clinet:** [pluggkompis-client](https://github.com/PluggKompis/pluggkompis-client)
+- **Project Board:** [PluggKompis Project](https://github.com/orgs/PluggKompis/projects/1/views/1)
 
 ---
 
