@@ -37,8 +37,8 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
+          refreshToken,
+        });
 
           if (data.isSuccess) {
             localStorage.setItem("token", data.data.token);
