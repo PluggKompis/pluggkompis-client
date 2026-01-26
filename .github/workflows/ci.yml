@@ -1,0 +1,43 @@
+name: CI (Quality Check)
+
+on:
+  push:
+    branches: [development, main]
+  pull_request:
+    branches: [development, main]
+
+jobs:
+  quality-check:
+    name: Lint, Format & Verify Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npm run format:check
+
+      # We run the build here to ensure there are no compilation errors.
+      # We don't deploy this; Vercel builds its own copy.
+      - name: Verify Build
+        run: npm run build
+        env:
+          # This placeholder ensures the build doesn't crash if it expects a string
+          VITE_API_URL: "http://localhost:5001/api"

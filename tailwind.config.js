@@ -7,19 +7,45 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Primary brand colors
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          DEFAULT: '#24A54F',
+          dark: '#063B29',
+          light: '#829D94',
+          600: '#1e8f42',
         },
+        // Semantic colors (flat, not nested)
+        success: '#24A54F',
+        warning: '#E8A593',
+        error: '#DE7573',
+        
+        // Neutrals (flat)
+        'neutral-stroke': '#E4E3E0',
+        'neutral-secondary': '#829D94',
+        'neutral-bg': '#F7F6F2',
+        
+        // Status colors (flat)
+        'status-open': '#24A54F',
+        'status-full': '#DE7573',
+        'status-cancelled': '#829D94',
+
+        // Confidence level badges (warm progression) ← ADD THIS
+        'confidence-beginner': '#EFD48C',
+        'confidence-intermediate': '#E6C149',
+        'confidence-advanced': '#D4AA3A',
       },
+      fontFamily: {
+        sans: ['Afacad', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        'sm': '8px',
+        'md': '12px',
+        'lg': '20px',
+      },
+      boxShadow: {
+        'card': '0 1px 3px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.1)',
+      }
     },
   },
   plugins: [],
