@@ -5,9 +5,15 @@ Frontend application for the PluggKompis homework help coordination platform.
 **UI Language:** Swedish  
 **Code Language:** English
 
-## 📋 About
+## 📋 About PluggKompis
 
 PluggKompis is a platform that connects students and parents with free homework help (läxhjälp) offered at libraries, youth centers (fritidsgårdar), and study associations throughout Sweden.
+
+**The Problem:**  
+Finding homework help is scattered across different websites, Facebook groups, and physical flyers. Parents and students struggle to discover what's available nearby, see schedules, or book spots in advance.
+
+**Our Solution:**  
+A centralized platform where parents/students can browse, filter, and book homework help sessions, while venues can coordinate their volunteers and schedules efficiently.
 
 ## 🛠️ Tech Stack
 
@@ -239,6 +245,8 @@ npm run build
 
 Output will be in `dist/` directory.
 
+---
+
 ## 🧪 Future Testing
 
 Testing framework will be added in future iterations:
@@ -263,20 +271,31 @@ We have planned several enhancements to scale the platform's functionality:
 - **Map/List Toggle:** Add a toggle switch on the "Find Venues" page, allowing users to switch between the interactive map view and a detailed list view for better accessibility.
 - **Notification Settings:** User interface for managing automated email reminders for upcoming bookings.
 
+---
+
 ## 👥 Team
 
 - **Gabby** - Full-stack developer
 - **Mohanad** - Full-stack developer
 
+---
+
 ## 📄 License
 
 This project is created as a school project for NBI Handelsakademin.
 
+---
+
 ## 🔗 Related Repositories
 
-- **Backend API:** [pluggkompis-api](https://github.com/mohald-3/Pluggkompis-BE)
-- **Project Board:** [PluggKompis Development](https://github.com/users/mohald-3/projects/11/views/1)
+- **Backend API:** [[pluggkompis-api](https://github.com/PluggKompis/pluggkompis-api)]
+- **Frontend Clinet:** [[pluggkompis-client](https://github.com/PluggKompis/pluggkompis-client)]
+- **Project Board:** [[PluggKompis Project](https://github.com/orgs/PluggKompis/projects/1/views/1)]
 
 ---
 
 **Note:** This is a student project for the Advanced Object-Oriented Programming course at NBI Handelsakademin, Gothenburg.
+
+---
+
+**Built with ❤️ as part of our .NET System Development education**
