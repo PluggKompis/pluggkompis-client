@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import { StudentBookingsList } from "@/components/features/student/StudentBookingsList";
-import { Button } from "@/components/common";
+import { Button, TabNavigation } from "@/components/common";
 import { useAuth } from "@/hooks";
 
 export const StudentDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"bookings">("bookings");
   const { user } = useAuth();
+
+  const tabs = [{ id: "bookings", label: "Mina Bokningar" }];
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -31,18 +33,15 @@ export const StudentDashboard: React.FC = () => {
         </Link>
       </div>
 
-      {/* Tabs */}
-      <div className="tabs">
-        <button
-          onClick={() => setActiveTab("bookings")}
-          className={`tab ${activeTab === "bookings" ? "tab-active" : ""}`}
-        >
-          Mina Bokningar
-        </button>
-      </div>
+      {/* Responsive Tabs */}
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+      />
 
       {/* Tab Content */}
-      <div className="mt-8">{activeTab === "bookings" && <StudentBookingsList />}</div>
+      <div className="mt-6 md:mt-8">{activeTab === "bookings" && <StudentBookingsList />}</div>
     </div>
   );
 };

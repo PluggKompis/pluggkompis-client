@@ -3,12 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import { User, AlertCircle } from "lucide-react";
 import { ChildrenList } from "@/components/features/parent/ChildrenList";
 import { ParentBookingsList } from "@/components/features/parent/ParentBookingsList";
-import { Button } from "@/components/common";
+import { Button, TabNavigation } from "@/components/common";
 import { useAuth } from "@/hooks";
 
 export const ParentDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"children" | "bookings">("children");
   const { user } = useAuth();
+  const tabs = [
+    { id: "children", label: "Mina Barn" },
+    { id: "bookings", label: "Bokningar" },
+  ];
   const location = useLocation();
 
   const message = (location.state as { message?: string })?.message; // Get message from navigation state
@@ -43,24 +47,15 @@ export const ParentDashboard: React.FC = () => {
         </Link>
       </div>
 
-      {/* Tabs */}
-      <div className="tabs">
-        <button
-          onClick={() => setActiveTab("children")}
-          className={`tab ${activeTab === "children" ? "tab-active" : ""}`}
-        >
-          Mina Barn
-        </button>
-        <button
-          onClick={() => setActiveTab("bookings")}
-          className={`tab ${activeTab === "bookings" ? "tab-active" : ""}`}
-        >
-          Mina Bokningar
-        </button>
-      </div>
+      {/* Responsive Tabs */}
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+      />
 
       {/* Tab Content */}
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         {activeTab === "children" && <ChildrenList />}
         {activeTab === "bookings" && <ParentBookingsList />}
       </div>
