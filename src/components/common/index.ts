@@ -10,3 +10,4 @@ export { Modal } from "./Modal";
 export { Spinner } from "./Spinner";
 export { BackToTop } from "./BackToTop";
 export { SubjectTag } from "./SubjectTag";
+export { TabNavigation } from "./TabNavigation";

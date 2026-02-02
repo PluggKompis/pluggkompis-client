@@ -6,7 +6,7 @@ import { TimeSlotsManager } from "@/components/features/coordinator/TimeSlotsMan
 import { VolunteersManager } from "@/components/features/coordinator/VolunteersManager";
 import { AttendanceTracker } from "@/components/features/coordinator/AttendanceTracker";
 import { VenueInfo } from "@/components/features/coordinator/VenueInfo";
-import { Button } from "@/components/common";
+import { Button, TabNavigation } from "@/components/common";
 import { useAuth } from "@/hooks";
 
 export const CoordinatorDashboard: React.FC = () => {
@@ -14,6 +14,14 @@ export const CoordinatorDashboard: React.FC = () => {
     "overview" | "timeslots" | "volunteers" | "attendance" | "venue"
   >("overview");
   const { user } = useAuth();
+
+  const tabs = [
+    { id: "overview", label: "Översikt" },
+    { id: "timeslots", label: "Tider" },
+    { id: "volunteers", label: "Volontärer" },
+    { id: "attendance", label: "Närvaro" },
+    { id: "venue", label: "Min Plats" },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -37,42 +45,15 @@ export const CoordinatorDashboard: React.FC = () => {
         </Link>
       </div>
 
-      {/* Tabs */}
-      <div className="tabs">
-        <button
-          onClick={() => setActiveTab("overview")}
-          className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
-        >
-          Översikt
-        </button>
-        <button
-          onClick={() => setActiveTab("timeslots")}
-          className={`tab ${activeTab === "timeslots" ? "tab-active" : ""}`}
-        >
-          Tider
-        </button>
-        <button
-          onClick={() => setActiveTab("volunteers")}
-          className={`tab ${activeTab === "volunteers" ? "tab-active" : ""}`}
-        >
-          Volontärer
-        </button>
-        <button
-          onClick={() => setActiveTab("attendance")}
-          className={`tab ${activeTab === "attendance" ? "tab-active" : ""}`}
-        >
-          Närvaro
-        </button>
-        <button
-          onClick={() => setActiveTab("venue")}
-          className={`tab ${activeTab === "venue" ? "tab-active" : ""}`}
-        >
-          Min Plats
-        </button>
-      </div>
+      {/* Responsive Tabs */}
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+      />
 
       {/* Tab Content */}
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         {activeTab === "overview" && <Overview />}
         {activeTab === "timeslots" && <TimeSlotsManager />}
         {activeTab === "volunteers" && <VolunteersManager />}

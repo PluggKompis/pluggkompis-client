@@ -6,7 +6,7 @@ import { AvailableShifts } from "@/components/features/volunteers/AvailableShift
 import { ExportHours } from "@/components/features/volunteers/ExportHours";
 import { VolunteerProfile } from "@/components/features/volunteers/VolunteerProfile";
 import { MyApplications } from "@/components/features/volunteers/MyApplications";
-import { Button } from "@/components/common";
+import { Button, TabNavigation } from "@/components/common";
 import { useAuth } from "@/hooks";
 
 export const VolunteerDashboard: React.FC = () => {
@@ -14,6 +14,14 @@ export const VolunteerDashboard: React.FC = () => {
     "profile" | "applications" | "shifts" | "available" | "export"
   >("profile");
   const { user } = useAuth();
+
+  const tabs = [
+    { id: "profile", label: "Volontärprofil" },
+    { id: "applications", label: "Ansökningar" },
+    { id: "shifts", label: "Mina Pass" },
+    { id: "available", label: "Tillgängliga Pass" },
+    { id: "export", label: "Exportera" },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -37,42 +45,15 @@ export const VolunteerDashboard: React.FC = () => {
         </Link>
       </div>
 
-      {/* Tabs */}
-      <div className="tabs">
-        <button
-          onClick={() => setActiveTab("profile")}
-          className={`tab ${activeTab === "profile" ? "tab-active" : ""}`}
-        >
-          Volontärprofil
-        </button>
-        <button
-          onClick={() => setActiveTab("applications")}
-          className={`tab ${activeTab === "applications" ? "tab-active" : ""}`}
-        >
-          Mina Ansökningar
-        </button>
-        <button
-          onClick={() => setActiveTab("shifts")}
-          className={`tab ${activeTab === "shifts" ? "tab-active" : ""}`}
-        >
-          Mina Pass
-        </button>
-        <button
-          onClick={() => setActiveTab("available")}
-          className={`tab ${activeTab === "available" ? "tab-active" : ""}`}
-        >
-          Tillgängliga Pass
-        </button>
-        <button
-          onClick={() => setActiveTab("export")}
-          className={`tab ${activeTab === "export" ? "tab-active" : ""}`}
-        >
-          Exportera Timmar
-        </button>
-      </div>
+      {/* Responsive Tabs */}
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+      />
 
       {/* Tab Content */}
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         {activeTab === "profile" && <VolunteerProfile />}
         {activeTab === "applications" && <MyApplications />}
         {activeTab === "shifts" && <MyShifts />}
